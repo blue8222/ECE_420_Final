@@ -1,0 +1,28 @@
+{
+  "buildFiles": [
+    "C:\\Users\\llark\\OneDrive\\Documents\\GitHub\\ece420code\\structure_labs\\lab_files\\fromExisting_files\\lab4\\app\\src\\main\\cpp\\CMakeLists.txt",
+    "C:\\Users\\llark\\OneDrive\\Documents\\GitHub\\ece420code\\structure_labs\\lab_files\\fromExisting_files\\lab4\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\llark\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "C:\\Users\\llark\\OneDrive\\Documents\\GitHub\\ece420code\\structure_labs\\lab_files\\fromExisting_files\\lab4\\app\\.cxx\\Debug\\q132e395\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\llark\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "C:\\Users\\llark\\OneDrive\\Documents\\GitHub\\ece420code\\structure_labs\\lab_files\\fromExisting_files\\lab4\\app\\.cxx\\Debug\\q132e395\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "echo::@6890427a1f51a3e7e1df": {
+      "artifactName": "echo",
+      "abi": "x86",
+      "output": "C:\\Users\\llark\\OneDrive\\Documents\\GitHub\\ece420code\\structure_labs\\lab_files\\fromExisting_files\\lab4\\app\\build\\intermediates\\cxx\\Debug\\q132e395\\obj\\x86\\libecho.so",
+      "runtimeFiles": []
+    }
+  }
+}
