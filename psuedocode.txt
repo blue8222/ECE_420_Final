@@ -1,0 +1,36 @@
+
+psuedocode for algorithm
+
+
+Part1: Distance Calculation
+
+    -Generate Chirp (multi or single)
+
+    -Enable recording of mirophones
+
+    -Create some kind of buffer for recorded samples
+
+    -extract the "average" chirp recording based on minimized noise    
+
+    -Correlation
+    
+    -Apply Cancellation 
+
+    -multiply combined signal S_m   
+
+    -take FFT
+
+    -peak selection within reasonable range
+
+    -calculate Object distance based on R. (D = R/2)
+
+    -propmt user for distance calculation
+
+
+Part2: Amplidute comparison
+
+    -establish baseline parameter for ideal surface (we will need to due some testing with diffrent surfaces)
+
+    -calculate reflection coeff / absorption
+
+    -report to screen
