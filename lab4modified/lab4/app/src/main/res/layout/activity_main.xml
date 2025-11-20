@@ -30,7 +30,7 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentBottom="true"/>
 
-    <TextView
+    <!-- <TextView
         android:id="@+id/textFrequency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -38,6 +38,16 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="76dp"
         android:text="Unvoiced"
+        android:textAppearance="@android:style/TextAppearance.Material.Headline"
+        android:textSize="36sp" /> -->
+    <TextView
+        android:id="@+id/textDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="76dp"
+        android:text="-- cm"
         android:textAppearance="@android:style/TextAppearance.Material.Headline"
         android:textSize="36sp" />
 

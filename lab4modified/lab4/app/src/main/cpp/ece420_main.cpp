@@ -20,15 +20,20 @@
 #define F_min 8000.0
 #define B 10000.0
 #define FRAME_SIZE 1024 //size of the recorded buffer (should be greater than chirp length)
-#define V_s = 343.0  // Speed of sound in air (m/s)
+#define V_s 343.0  // Speed of sound in air (m/s)
 
+extern "C" {
+JNIEXPORT float JNICALL
+Java_com_ece420_lab4_MainActivity_getDistanceUpdate(JNIEnv *env, jclass);
+}
 
 
 // Define the global buffers and playback position
 std::vector<float> fullRecordingBuffer;
 std::vector<float> playbackBuffer;
 std::atomic<int> playbackBufferPos(0);
-
+// The distance measured
+float distance = -1
 // Function to generate a chirp
 std::vector<float> generatePlaybackAudio(bool window) {
 
@@ -164,7 +169,10 @@ Java_com_ece420_lab4_MainActivity_startEcho(JNIEnv *env, jobject thiz) {
 
 }
 
-
+// Return measured distance
+Java_com_ece420_lab4_MainActivity_getDistanceUpdate(JNIEnv *env, jclass){
+    return distance;
+}
 
 
 
