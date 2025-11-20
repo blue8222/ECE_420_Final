@@ -22,6 +22,14 @@
 #define FRAME_SIZE 1024 //size of the recorded buffer (should be greater than chirp length)
 #define V_s 343.0  // Speed of sound in air (m/s)
 
+
+struct Peak {
+    int index;           // peak index
+    float value;         // peak value
+    float distance_m;    // calculated distance
+};
+
+
 extern "C" {
 JNIEXPORT float JNICALL
 Java_com_ece420_lab4_MainActivity_getDistanceUpdate(JNIEnv *env, jclass);
@@ -33,7 +41,7 @@ std::vector<float> fullRecordingBuffer;
 std::vector<float> playbackBuffer;
 std::atomic<int> playbackBufferPos(0);
 // The distance measured
-float distance = -1
+//float distance = -1
 // Function to generate a chirp
 std::vector<float> generatePlaybackAudio(bool window) {
 
@@ -146,6 +154,82 @@ std::vector<float> correlate(const std::vector<float>& a, const std::vector<floa
     return result;
 }
 
+std::vector<float> findPeaks(const std::vector<float>& correlation, const std::vector<float>& reference_chirp, const float threshold = 0.3){
+    std::vector<Peak> peaks;
+    
+    float max_corr = 0.0;
+    for (float val : correlation) {
+        float abs_val = std::abs(val) 
+        if (abs_val > max_corr) {
+            max_corr = abs_val;
+        }
+    }
+    
+    
+    // chirp length
+    int chirp_len = reference_chirp.size();
+    
+    // find peak, the gap between two peaks must be larger than a threshold
+    int min_distance = FS * 0.01;  
+    
+    for (size_t i = min_distance; i < correlation.size() - min_distance; ++i) {
+        float normalized_val = correlation[i] / max_corr;
+        // check if larger than threshold and min distance
+        if (normalized_val > threshold) {
+            bool is_peak = true;
+            // check if the local maximum
+            for (int j = -min_distance/2; j <= min_distance/2; ++j) {
+                if (j != 0 && correlation[i + j] > correlation[i]) {
+                    is_peak = false;
+                    break;
+                }
+            }
+            
+            if (is_peak) {
+                Peak peak;
+                peak.index = i;
+                peak.value = normalized_val;
+                
+                // include time delay
+                int lag = i - chirp_len + 1;
+                float time_delay = (float)lag / FS;
+                
+                peak.distance_m = (time_delay * V_S) / 2.0;
+                
+                if (peak.distance_m > 0) {
+                    peaks.push_back(peak);
+                    // LOGD("Peak found at index %d, normalized value: %.3f, distance: %.2f m", 
+                    //      peak.index, peak.value, peak.distance_m);
+                }
+            }
+        }
+    }
+    
+    return peaks;
+}
+
+float distanceEstimation(){
+    if(fullRecordingBuffer.empty() || playbackBuffer.empty()){
+        return -1.0;
+    }
+    std::vector<float> correlation = correlate(fullRecordingBuffer, playbackBuffer);
+    std::vector<float> peaks = findPeaks(correlation, playbackBuffer, 0.3);
+    // minimum distance measured will be at least 20cm
+    float min_distance = 0.2;
+    Peak best_peak;
+    best_peak.value = 0.0;
+    // find the best peak
+    for(Peak& peak:peaks){
+        if(peak.distance_m>min_distance && peak.value > best_peak.value){
+            best_peak = peak;
+        }
+    }
+    if(best_peak.value == 0.0){
+        return -1.0;
+    }
+
+    return best_peak.distance_m;
+}
 
 // Define a new JNI function to start the process
 extern "C" JNIEXPORT void JNICALL
@@ -171,6 +255,7 @@ Java_com_ece420_lab4_MainActivity_startEcho(JNIEnv *env, jobject thiz) {
 
 // Return measured distance
 Java_com_ece420_lab4_MainActivity_getDistanceUpdate(JNIEnv *env, jclass){
+    float distance = distanceEstimation()
     return distance;
 }
 
