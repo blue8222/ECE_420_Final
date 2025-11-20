@@ -1,0 +1,42 @@
+[
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_common.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_common.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_common.cpp"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_main.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_main.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_main.cpp"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_player.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_player.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_player.cpp"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_recorder.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_recorder.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\audio_recorder.cpp"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\debug_utils.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\debug_utils.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\debug_utils.cpp"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\kiss_fft\\kiss_fft.c.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\kiss_fft\\kiss_fft.c\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\kiss_fft\\kiss_fft.c"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\ece420_lib.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\ece420_lib.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\ece420_lib.cpp"
+},
+{
+  "directory": "H:/ECE 420/ECE_420_final/lab4/lab4/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -I\"H:/ECE 420/ECE_420_final/lab4/lab4/app/src/main/cpp/NumCpp/include\" -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\ece420_main.cpp.o -c \"H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\ece420_main.cpp\"",
+  "file": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\ece420_main.cpp"
+}
+]
