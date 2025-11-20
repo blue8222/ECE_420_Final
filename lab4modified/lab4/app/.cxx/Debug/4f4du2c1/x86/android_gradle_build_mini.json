@@ -1,0 +1,34 @@
+{
+  "buildFiles": [
+    "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\CMakeLists.txt",
+    "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "-C",
+      "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\.cxx\\Debug\\4f4du2c1\\x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "-C",
+    "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\.cxx\\Debug\\4f4du2c1\\x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "echo::@6890427a1f51a3e7e1df": {
+      "artifactName": "echo",
+      "abi": "x86",
+      "output": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\x86\\libecho.so",
+      "runtimeFiles": []
+    },
+    "ece420_main::@6890427a1f51a3e7e1df": {
+      "artifactName": "ece420_main",
+      "abi": "x86",
+      "output": "H:\\ECE 420\\ECE_420_final\\lab4\\lab4\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\x86\\libece420_main.so",
+      "runtimeFiles": []
+    }
+  }
+}
