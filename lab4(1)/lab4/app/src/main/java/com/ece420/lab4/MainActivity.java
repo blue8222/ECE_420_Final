@@ -49,7 +49,7 @@ public class MainActivity extends Activity
     // UI Variables
     Button   controlButton;
     TextView statusView;
-    static TextView freq_view;
+    static TextView distance_view;
     String  nativeSampleRate;
     String  nativeSampleBufSize;
     boolean supportRecording;
@@ -76,7 +76,7 @@ public class MainActivity extends Activity
         }
 
         // Setup UI
-        freq_view = (TextView)findViewById(R.id.textFrequency);
+        distance_view = (TextView)findViewById(R.id.textDistance);
         initializeFreqTextBackgroundTask(100);
     }
     @Override
@@ -251,16 +251,16 @@ public class MainActivity extends Activity
         protected Void doInBackground(Void... params) {
 
             // Update screen, needs to be done on UI thread
-            publishProgress(getFreqUpdate());
+            publishProgress(getDistanceUpdate());
 
             return null;
         }
-
-        protected void onProgressUpdate(Float... newFreq) {
-            if (newFreq[0] > 0) {
-                freq_view.setText(Long.toString(newFreq[0].longValue()) + " Hz");
+        // Parameter Update
+        protected void onProgressUpdate(Float... newDistance) {
+            if (values[0] >= 0) {
+                distance_view.setText(String.format("%.1f cm", values[0]));
             } else {
-                freq_view.setText("Unvoiced");
+                distance_view.setText("-- cm");
             }
         }
     }
@@ -286,5 +286,5 @@ public class MainActivity extends Activity
     public static native void startPlay();
     public static native void stopPlay();
 
-    public static native float getFreqUpdate();
+    public static native float getDistanceUpdate();
 }

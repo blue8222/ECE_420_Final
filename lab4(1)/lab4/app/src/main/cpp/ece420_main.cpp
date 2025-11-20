@@ -10,7 +10,7 @@
 // JNI Function
 extern "C" {
 JNIEXPORT float JNICALL
-Java_com_ece420_lab4_MainActivity_getFreqUpdate(JNIEnv *env, jclass);
+Java_com_ece420_lab4_MainActivity_getDistanceUpdate(JNIEnv *env, jclass);
 }
 
 // Student Variables
@@ -65,6 +65,6 @@ void ece420ProcessFrame(sample_buf *dataBuf) {
 }
 
 JNIEXPORT float JNICALL
-Java_com_ece420_lab4_MainActivity_getFreqUpdate(JNIEnv *env, jclass) {
+Java_com_ece420_lab4_MainActivity_getDistanceUpdate(JNIEnv *env, jclass) {
     return lastFreqDetected;
 }
