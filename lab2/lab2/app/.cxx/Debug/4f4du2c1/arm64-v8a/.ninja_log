@@ -61,3 +61,11 @@
 1832	2045	7854527069323152	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
 8	2536	7854533374231922	CMakeFiles/echo.dir/process_recording.cpp.o	33aa9aee59cdca2e
 2537	2773	7854533376672523	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+8	1746	7854541969192905	CMakeFiles/echo.dir/chirp_generate.cpp.o	d6233bbd4272dc56
+8	858	7854547881091909	CMakeFiles/echo.dir/chirp_generate.cpp.o	d6233bbd4272dc56
+28	1349	7854547885960048	CMakeFiles/echo.dir/process_recording.cpp.o	33aa9aee59cdca2e
+19	1588	7854551831445576	CMakeFiles/echo.dir/chirp_generate.cpp.o	d6233bbd4272dc56
+1588	1798	7854551833628388	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+6	852	7854553155587951	CMakeFiles/echo.dir/chirp_generate.cpp.o	d6233bbd4272dc56
+29	1399	7854553160979466	CMakeFiles/echo.dir/process_recording.cpp.o	33aa9aee59cdca2e
+1400	1601	7854553162932168	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a

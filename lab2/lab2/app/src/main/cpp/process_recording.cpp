@@ -8,6 +8,7 @@
 #include "debug_utils.h"
 #include <android/log.h>
 #include "android_debug.h"
+#include "chirp_generate.h"
 
 
 #include "kiss_fft/kiss_fft.h"
@@ -15,6 +16,9 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+#define V_s 343.0
+
 
 
 //static constexpr float SPEED_OF_SOUND_MS = 343.0f;
@@ -228,9 +232,7 @@ static Peak findFFTPeak(const std::vector<float>& arr,
 
 // Top-level function used earlier as distanceEstimation; now embedded in analyzeRecordedBuffer
 static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
-                                          const std::vector<float>& reference_chirp,
-                                          int sampleRate,
-                                          float minDistanceMeters = 0.2f)
+                                          const std::vector<float>& reference_chirp)
 {
     if (recorded.empty() || reference_chirp.empty()) return -1.0;
     std::vector<float> corr = correlate(recorded, reference_chirp);
@@ -279,9 +281,11 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
 
     takeFFT(mult, FFT, FFT_mag);
 
-    Peak Distance = findFFTPeak(FFT_mag, 0, FFT_mag.size() - 1);
+    Peak F_p = findFFTPeak(FFT_mag, 0, FFT_mag.size() - 1);
 
-    return Distance.distance_m;
+    double R = (V_s * sweepTime * F_p.distance_m) / bandwidth;
+    double D = R/2;
+    return D;
 
 
 
@@ -317,7 +321,7 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
 
 
 
-            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat, sampleRate, 0.20f);
+            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat);
             if (dist > 0.0) {
                 res.distance_valid = true;
                 res.distance_m = dist;

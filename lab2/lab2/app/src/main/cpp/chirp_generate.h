@@ -10,6 +10,12 @@
 #include <vector>
 #include <cstdint>
 
+
+#define sweepTime 0.5
+#define minFreq 8000.0
+#define bandwidth 10000.0
+
+
 /**
  * Generate a linear-frequency chirp with Hanning window, 16-bit PCM (mono).
  *
@@ -21,9 +27,9 @@
  */
 std::vector<uint8_t> generateChirpPCM_LE16(
         int sampleRate,
-        double minFreq,
-        double bandwidth,
-        double sweepTime
+        double minFreq_,
+        double bandwidth_,
+        double sweepTime_
 );
 
 #endif // GENERATE_CHIRP_H

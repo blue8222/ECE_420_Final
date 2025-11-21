@@ -2,7 +2,6 @@
 // Created by dager on 11/21/2025.
 //
 
-#include "chirp_generate.h"
 
 #include "chirp_generate.h"
 #include <cmath>
@@ -13,33 +12,35 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+
+
+
 static inline float getHanningCoef(int N, int idx) {
     return (float)(0.5 * (1.0 - cos(2.0 * M_PI * idx / (N - 1))));
 }
 
 std::vector<uint8_t> generateChirpPCM_LE16(
-        int sampleRate,
-        double minFreq,
-        double bandwidth,
-        double sweepTime
+        int sampleRate_,
+        double minFreq_,
+        double bandwidth_,
+        double sweepTime_
+
 ) {
     std::vector<uint8_t> pcm;
 
-    if (sampleRate <= 0 || sweepTime <= 0 || bandwidth < 0 || minFreq < 0) {
-        return pcm;
-    }
 
-    const int totalSamples = static_cast<int>(sampleRate * sweepTime);
+
+    const int totalSamples = static_cast<int>(sampleRate_ * sweepTime);
     pcm.reserve(totalSamples * 2);
 
-    double maxFreq = minFreq + bandwidth;
-    double k = (maxFreq - minFreq) / sweepTime;  // sweep rate (Hz per sec)
+    double maxFreq = minFreq_ + bandwidth_;
+    double k = (maxFreq - minFreq_) / sweepTime_;  // sweep rate (Hz per sec)
 
     for (int n = 0; n < totalSamples; ++n) {
-        double t = (double)n / (double)sampleRate;
+        double t = (double)n / (double)sampleRate_;
         // instantaneous phase for linear chirp:
         // φ(t) = 2π ( f0 t + (k/2) t^2 )
-        double phase = 2.0 * M_PI * (minFreq * t + 0.5 * k * t * t);
+        double phase = 2.0 * M_PI * (minFreq_ * t + 0.5 * k * t * t);
         double sampleValue = sin(phase);
 
         // apply Hanning window
@@ -61,14 +62,10 @@ std::vector<uint8_t> generateChirpPCM_LE16(
 
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_com_ece420_lab2_MainActivity_generateChirpPCMNative(
-        JNIEnv* env, jclass,
-        jint sampleRate,
-        jdouble minFreq,
-        jdouble bandwidth,
-        jdouble sweepTime) {
+        JNIEnv* env, jclass) {
 
     std::vector<uint8_t> pcm = generateChirpPCM_LE16(
-            sampleRate,
+            48000,
             minFreq,
             bandwidth,
             sweepTime

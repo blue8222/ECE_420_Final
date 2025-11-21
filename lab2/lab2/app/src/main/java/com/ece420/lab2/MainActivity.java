@@ -98,12 +98,7 @@ public class MainActivity extends Activity
         int sampleRate = Integer.parseInt(nativeSampleRate);
 
         // Generate chirp
-        byte[] chirp = generateChirpPCMNative(
-                sampleRate,
-                8000.0,     // min freq
-                10000.0,    // bandwidth
-                0.5         // sweep time
-        );
+        byte[] chirp = generateChirpPCMNative();
 
         if (!isPlaying) {
 
@@ -299,11 +294,7 @@ public class MainActivity extends Activity
 
     public static native byte[] generateTonePCMNative(int sampleRate, int durationSeconds, double freqHz);
 
-    public static native byte[] generateChirpPCMNative(
-            int sampleRate,
-            double minFreq,
-            double bandwidth,
-            double sweepTime);
+    public static native byte[] generateChirpPCMNative();
 
     private static native AnalysisResult analyzeRecordedBuffer(byte[] pcmBytes, int sampleRate, byte[] referenceChirpBytes);
 
