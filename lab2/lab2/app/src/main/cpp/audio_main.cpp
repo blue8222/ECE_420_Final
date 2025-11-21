@@ -29,6 +29,8 @@ struct EchoAudioEngine {
     sample_buf  *bufs_;
     uint32_t     bufCount_;
     uint32_t     frameCount_;
+    uint32_t      recordLength;
+
 
     // static-like player fields (new)
     StaticAudioPlayer *staticPlayer_;
@@ -41,7 +43,7 @@ bool EngineService(void* ctx, uint32_t msg, void* data );
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_com_ece420_lab2_MainActivity_createSLEngine(JNIEnv *env, jclass, jint sampleRate, jint framesPerBuf);
+Java_com_ece420_lab2_MainActivity_createSLEngine(JNIEnv *env, jclass, jint sampleRate, jint framesPerBuf, jint recordLength);
 
 JNIEXPORT void JNICALL
 Java_com_ece420_lab2_MainActivity_deleteSLEngine(JNIEnv *env, jclass type);
@@ -73,7 +75,7 @@ Java_com_ece420_lab2_MainActivity_loadPCMBuffer(JNIEnv *env, jclass type, jbyteA
 
 JNIEXPORT void JNICALL
 Java_com_ece420_lab2_MainActivity_createSLEngine(
-        JNIEnv *env, jclass type, jint sampleRate, jint framesPerBuf) {
+        JNIEnv *env, jclass type, jint sampleRate, jint framesPerBuf, jint recordLength) {
     SLresult result;
     memset(&engine, 0, sizeof(engine));
 
@@ -85,6 +87,8 @@ Java_com_ece420_lab2_MainActivity_createSLEngine(
     engine.staticPlayer_ = nullptr;
     engine.staticPcmBuffer_ = nullptr;
     engine.staticPcmSizeBytes_ = 0;
+    engine.recordLength = 0;
+
 
     engine.slEngineObj_ = nullptr;
     engine.slEngineItf_ = nullptr;
@@ -102,7 +106,8 @@ Java_com_ece420_lab2_MainActivity_createSLEngine(
     uint32_t bufSize = engine.fastPathFramesPerBuf_ * engine.sampleChannels_ * engine.bitsPerSample_;
     bufSize = (bufSize + 7) >> 3;            // bits --> byte
 
-    engine.bufCount_ = BUF_COUNT;
+    engine.bufCount_ = (int) (sampleRate/bufSize)*recordLength;
+
     engine.bufs_ = allocateSampleBufs(engine.bufCount_, bufSize);
     assert(engine.bufs_);
 

@@ -63,7 +63,8 @@ public class MainActivity extends Activity
 
         // IMPORTANT: create the SL engine regardless of whether recording is supported,
         // so we can play static buffers without needing the mic.
-        createSLEngine(Integer.parseInt(nativeSampleRate), Integer.parseInt(nativeSampleBufSize));
+        Log.i("MainActivity", "nativeSampleBufSize: " + nativeSampleBufSize);
+        createSLEngine(Integer.parseInt(nativeSampleRate), Integer.parseInt(nativeSampleBufSize), 2);
     }
 
     @Override
@@ -106,7 +107,7 @@ public class MainActivity extends Activity
 
         if (!isPlaying) {
 
-            int expectedBytes = (int)(sampleRate * 2 * 1.0); // 1 second recording
+            int expectedBytes = (int)(sampleRate * 2 * 2.0); // 1 second recording
 
             // 1. Load PCM into native buffer
             boolean ok = loadPCMBuffer(chirp);
@@ -144,6 +145,18 @@ public class MainActivity extends Activity
 
             // Get recorded buffer from native
             byte[] recorded = nativeStopAndGetRecording();
+
+            WaveformView waveformView = findViewById(R.id.waveformView);
+
+            if (recorded != null) {
+                // Convert byte[] → short[] PCM
+                short[] pcm = new short[recorded.length / 2];
+                for (int i = 0; i < pcm.length; i++) {
+                    pcm[i] = (short) ((recorded[i*2] & 0xFF) | (recorded[i*2 + 1] << 8));
+                }
+
+                waveformView.setAudioData(pcm);
+            }
 
             // Debug log
             if (recorded != null) {
@@ -184,6 +197,17 @@ public class MainActivity extends Activity
     public void onEchoClick(View view) {
         // For static playback we do not strictly require RECORD_AUDIO permission.
         // If you want to enable recording-based features, request permissions elsewhere.
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.RECORD_AUDIO},
+                    AUDIO_ECHO_REQUEST);
+
+            return; // wait for user response before starting
+        }
+
         startEcho();
     }
 
@@ -196,6 +220,7 @@ public class MainActivity extends Activity
         AudioManager myAudioMgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         nativeSampleRate  =  myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
         nativeSampleBufSize = myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+        //nativeSampleBufSize = String.valueOf(1024);
         int recBufSize = AudioRecord.getMinBufferSize(
                 Integer.parseInt(nativeSampleRate),
                 AudioFormat.CHANNEL_IN_MONO,
@@ -253,7 +278,7 @@ public class MainActivity extends Activity
     /*
      * jni function implementations...
      */
-    public static native void createSLEngine(int rate, int framesPerBuf);
+    public static native void createSLEngine(int rate, int framesPerBuf, int recordLength);
     public static native void deleteSLEngine();
 
     // old names kept for compatibility: createSLBufferQueueAudioPlayer now

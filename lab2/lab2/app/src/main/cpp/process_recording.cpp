@@ -5,6 +5,9 @@
 #include <cstring>
 #include <cassert>
 #include <jni.h>
+#include "debug_utils.h"
+#include <android/log.h>
+#include "android_debug.h"
 
 
 #include "kiss_fft/kiss_fft.h"
@@ -14,7 +17,7 @@
 #endif
 
 
-static constexpr float SPEED_OF_SOUND_MS = 343.0f;
+//static constexpr float SPEED_OF_SOUND_MS = 343.0f;
 
 
 // convert little-endian bytes -> int16_t samples
@@ -120,74 +123,171 @@ struct Peak {
     float distance_m;
 };
 
-// find peaks in correlation and convert to distances (meters)
-// reference_chirp: the chirp samples (float) used for computing correlation length
-static std::vector<Peak> findPeaks(const std::vector<float>& correlation,
-                                   const std::vector<float>& reference_chirp,
-                                   int sampleRate,
-                                   float threshold = 0.3f)
+void takeFFT(const std::vector<float>& inReal,
+                         std::vector<std::complex<float>>& outSpectrum,
+                         std::vector<float>& outMagnitudes)
 {
-    std::vector<Peak> peaks;
-    if (correlation.empty() || reference_chirp.empty()) return peaks;
+    int N = static_cast<int>(inReal.size());
+    outSpectrum.clear();
+    outMagnitudes.clear();
+    if (N <= 0) return;
 
-    float max_corr = 0.0f;
-    for (float val : correlation) {
-        float abs_val = (val >= 0.0f) ? val : -val;
-        if (abs_val > max_corr) max_corr = abs_val;
+    // optional: copy and window
+    std::vector<float> data(inReal);
+
+    // Prepare kiss input and output buffers
+    std::vector<kiss_fft_cpx> fin(N);
+    std::vector<kiss_fft_cpx> fout(N);
+
+    for (int i = 0; i < N; ++i) {
+        fin[i].r = data[i];
+        fin[i].i = 0;
     }
-    if (max_corr <= 0.0f) return peaks;
 
-    int chirp_len = static_cast<int>(reference_chirp.size());
-    // minimum distance between peaks (in samples) — here 10ms default
-    int min_distance = std::max<int>(1, (int)std::floor(sampleRate * 0.01f));
+    // Allocate config (inverse_fft = 0 for forward FFT)
+    kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, nullptr, nullptr);
+    if (!cfg) {
+        // allocation failed
+        return;
+    }
 
-    // scan correlation for peaks avoiding edges by min_distance
-    for (size_t i = min_distance; i + min_distance < correlation.size(); ++i) {
-        float normalized_val = correlation[i] / max_corr;
-        if (normalized_val > threshold) {
-            bool is_peak = true;
-            // check local max across neighborhood
-            int half_win = min_distance / 2;
-            for (int j = -half_win; j <= half_win; ++j) {
-                if (j == 0) continue;
-                if (correlation[i + j] > correlation[i]) { is_peak = false; break; }
-            }
-            if (!is_peak) continue;
-            Peak p;
-            p.index = static_cast<int>(i);
-            p.value = normalized_val;
-            int lag = p.index - (chirp_len - 1); // because correlation lag 0 is at index (chirp_len - 1)
-            float time_delay = static_cast<float>(lag) / static_cast<float>(sampleRate);
-            // two-way travel: distance = (time_delay * speed) / 2
-            p.distance_m = (time_delay * SPEED_OF_SOUND_MS) / 2.0f;
-            // only add positive, sensible distances
-            if (p.distance_m > 0.0f) peaks.push_back(p);
+    // Execute FFT
+    kiss_fft(cfg, fin.data(), fout.data());
+
+    // Convert to std::complex and compute magnitudes
+    outSpectrum.resize(N);
+    outMagnitudes.resize(N);
+    for (int k = 0; k < N; ++k) {
+        outSpectrum[k] = std::complex<float>(fout[k].r, fout[k].i);
+        outMagnitudes[k] = std::hypot(fout[k].r, fout[k].i); // sqrt(r^2 + i^2)
+    }
+
+    // free config
+    kiss_fft_free(cfg);
+
+    // Note: kiss_fft does NOT normalize the transform. If you want amplitude to reflect
+    // input-sample amplitudes, divide magnitudes (or the spectrum) by N:
+    // for (auto &m : outMagnitudes) m /= static_cast<float>(N);
+}
+
+
+static Peak findMaxPeak(const std::vector<float>& correlation)
+{
+    Peak result{};
+    result.index = -1;      // signal "no peak found"
+    result.value = 0.0f;
+    result.distance_m = 0.0f;
+
+    if (correlation.empty()) return result;
+
+    int best_idx = 0;
+    float best_val = correlation[0];
+
+    for (size_t i = 1; i < correlation.size(); ++i) {
+        if (correlation[i] > best_val) {
+            best_val = correlation[i];
+            best_idx = static_cast<int>(i);
         }
     }
-    return peaks;
+
+    result.index = best_idx;
+    result.value = best_val;
+    return result;
+}
+
+static Peak findFFTPeak(const std::vector<float>& arr,
+                        int startIndex,
+                        int endIndex)
+{
+    Peak result{};
+    result.index = -1;      // signal "no peak found"
+    result.value = 0.0f;
+    result.distance_m = 0.0f;
+
+    if (arr.empty()) return result;
+
+    // clamp bounds defensively
+    if (startIndex < 0) startIndex = 0;
+    if (endIndex >= static_cast<int>(arr.size())) endIndex = static_cast<int>(arr.size()) - 1;
+    if (startIndex > endIndex) return result; // invalid search range
+
+    int best_idx = startIndex;
+    float best_val = arr[startIndex];
+
+    for (int i = startIndex + 1; i <= endIndex; ++i) {
+        if (arr[i] > best_val) {
+            best_val = arr[i];
+            best_idx = i;
+        }
+    }
+
+    result.index = best_idx;
+    result.value = best_val;
+    return result;
 }
 
 // Top-level function used earlier as distanceEstimation; now embedded in analyzeRecordedBuffer
 static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
                                           const std::vector<float>& reference_chirp,
                                           int sampleRate,
-                                          float correlationThreshold = 0.3f,
                                           float minDistanceMeters = 0.2f)
 {
     if (recorded.empty() || reference_chirp.empty()) return -1.0;
     std::vector<float> corr = correlate(recorded, reference_chirp);
     if (corr.empty()) return -1.0;
-    std::vector<Peak> peaks = findPeaks(corr, reference_chirp, sampleRate, correlationThreshold);
-    if (peaks.empty()) return -1.0;
-    // find best peak above minDistanceMeters
-    Peak best; best.value = 0.0f; best.distance_m = -1.0f;
-    for (const Peak& p : peaks) {
-        if (p.distance_m > minDistanceMeters && p.value > best.value) {
-            best = p;
-        }
+    Peak peak = findMaxPeak(corr);
+
+    int index = peak.index;
+    double cancel_factor = 0.5;
+
+    std::vector<float> arraySliced;
+
+// safety check
+    if (index < 0) index = 0;
+    if (index > (int)recorded.size()) index = recorded.size();
+
+    arraySliced = std::vector<float>(recorded.begin() + index, recorded.end());
+
+    arraySliced.resize(recorded.size(), 0.0f);
+
+    LOGI("arraySliced.size() = %zu, reference_chirp.size() = %zu", arraySliced.size(), reference_chirp.size());
+    assert(arraySliced.size() == reference_chirp.size());
+
+    //apply cancelation
+
+    for(int i = 0; i < arraySliced.size(); i++) {
+        arraySliced[i] = arraySliced[i] - cancel_factor*reference_chirp[i];
     }
-    if (best.value <= 0.0f) return -1.0;
-    return static_cast<double>(best.distance_m);
+
+    //apply hamming window
+    float denom = arraySliced.size() - 1.0f;
+
+    for (int n = 0; n < arraySliced.size(); n++) {
+        arraySliced[n] = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / denom);
+    }
+
+    //multply signals
+    std::vector<float> mult(arraySliced.size());
+
+    for (int n = 0; n < arraySliced.size(); n++) {
+        mult[n] = arraySliced[n]*reference_chirp[n];
+    }
+
+    //take FFT
+    std::vector<std::complex<float>> FFT;
+    std::vector<float> FFT_mag;
+
+    takeFFT(mult, FFT, FFT_mag);
+
+    Peak Distance = findFFTPeak(FFT_mag, 0, FFT_mag.size() - 1);
+
+    return Distance.distance_m;
+
+
+
+
+
+    //return static_cast<double>(peak.distance_m);
 }
 
 // ----------------- Main analyze function -----------------
@@ -217,7 +317,7 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
 
 
 
-            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat, sampleRate, 0.30f, 0.20f);
+            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat, sampleRate, 0.20f);
             if (dist > 0.0) {
                 res.distance_valid = true;
                 res.distance_m = dist;

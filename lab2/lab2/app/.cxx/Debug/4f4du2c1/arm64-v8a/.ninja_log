@@ -1,20 +1,61 @@
 # ninja log v5
-43	505	7853611906116183	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	e6366f9f191dd918
-35	1542	7853611916389992	CMakeFiles/echo.dir/ece420_lib.cpp.o	34d3335b8f074c25
-1245	1348	7854351337640461	H:/StudioProjects/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	deaa4ea57700faac
-8	972	7854351333850473	CMakeFiles/echo.dir/audio_common.cpp.o	2d81e66fde492e20
-15	1041	7854351334540489	CMakeFiles/echo.dir/audio_main.cpp.o	dc3a4e746ecead87
-29	1823	7853611919209984	CMakeFiles/echo.dir/debug_utils.cpp.o	4310b6343d99b423
-21	1023	7854351334350457	CMakeFiles/echo.dir/audio_player.cpp.o	900be0d73aeb58b4
-27	1201	7854351336120485	CMakeFiles/echo.dir/audio_recorder.cpp.o	11e6cb6b7d5cf371
-34	1245	7854351336590459	CMakeFiles/echo.dir/ece420_main.cpp.o	6e51e07078296938
-5	367	7854231554835499	CMakeFiles/echo.dir/StaticAudioPlayer.cpp.o	64ffdff1194720f3
-4	731	7854280088574634	CMakeFiles/echo.dir/generate_tone.cpp.o	3791bb5186dc9961
-13	732	7854280088594625	CMakeFiles/echo.dir/chirp_generate.cpp.o	c2fe1361ec82f1ba
-6	1258	7854329464920816	CMakeFiles/echo.dir/process_recording.cpp.o	3619ca5a647749da
-8	1236	7854354226395888	CMakeFiles/echo.dir/audio_common.cpp.o	2d81e66fde492e20
-28	1279	7854354226805891	CMakeFiles/echo.dir/audio_player.cpp.o	900be0d73aeb58b4
-16	1281	7854354226835914	CMakeFiles/echo.dir/audio_main.cpp.o	dc3a4e746ecead87
-22	1488	7854354228925918	CMakeFiles/echo.dir/audio_recorder.cpp.o	11e6cb6b7d5cf371
-35	1523	7854354229285891	CMakeFiles/echo.dir/ece420_main.cpp.o	6e51e07078296938
-1524	1649	7854354230585890	H:/StudioProjects/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	deaa4ea57700faac
+219	630	7854420192280303	CMakeFiles/echo.dir/StaticAudioPlayer.cpp.o	f75461a555bdfb5c
+158	660	7854420192593044	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	2c2bfb391f76333e
+1	2994	7854420215855547	CMakeFiles/echo.dir/audio_common.cpp.o	aa79bdd837b4d8e5
+191	3006	7854420215957088	CMakeFiles/echo.dir/ece420_lib.cpp.o	7a187bffaa6314d2
+49	3066	7854420216678761	CMakeFiles/echo.dir/audio_player.cpp.o	5e6da97f7ec07b51
+23	3076	7854420216699313	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+72	3081	7854420216801132	CMakeFiles/echo.dir/debug_utils.cpp.o	4a2173ba219fb69b
+248	3120	7854420217207232	CMakeFiles/echo.dir/chirp_generate.cpp.o	d6233bbd4272dc56
+282	3123	7854420217287914	CMakeFiles/echo.dir/generate_tone.cpp.o	5ff398614b2ce4e1
+132	3396	7854420219940750	CMakeFiles/echo.dir/ece420_main.cpp.o	a47113b5ea8c9183
+103	3405	7854420220042559	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+319	3945	7854420225415883	CMakeFiles/echo.dir/process_recording.cpp.o	33aa9aee59cdca2e
+3946	4239	7854420228337530	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+16	2482	7854420958707736	CMakeFiles/echo.dir/audio_common.cpp.o	aa79bdd837b4d8e5
+54	2604	7854420959928278	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+82	2622	7854420960131585	CMakeFiles/echo.dir/audio_player.cpp.o	5e6da97f7ec07b51
+132	3040	7854420964304862	CMakeFiles/echo.dir/ece420_main.cpp.o	a47113b5ea8c9183
+109	3103	7854420964710074	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+3104	3444	7854420968347515	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+9	1069	7854422507485060	CMakeFiles/echo.dir/audio_common.cpp.o	aa79bdd837b4d8e5
+65	1109	7854422507868974	CMakeFiles/echo.dir/audio_player.cpp.o	5e6da97f7ec07b51
+35	1111	7854422507970020	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+85	1262	7854422509486922	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+110	1303	7854422509889919	CMakeFiles/echo.dir/ece420_main.cpp.o	a47113b5ea8c9183
+1303	1489	7854422511663535	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+39	1239	7854438080475924	CMakeFiles/echo.dir/audio_common.cpp.o	aa79bdd837b4d8e5
+104	1281	7854438080981364	CMakeFiles/echo.dir/audio_player.cpp.o	5e6da97f7ec07b51
+6	1294	7854438081082849	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+120	1470	7854438082628450	CMakeFiles/echo.dir/ece420_main.cpp.o	a47113b5ea8c9183
+84	1531	7854438083017090	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+1539	2788	7854438095951059	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+6	1672	7854443530088985	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+1673	1863	7854443532019226	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+9	1217	7854449327208934	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+1218	1485	7854449329943123	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+8	1415	7854456908301871	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+1416	1630	7854456910524140	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+5	833	7854458369883989	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+834	1006	7854458371572250	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+5	818	7854460428737336	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+8	1087	7854461050393697	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+1088	1229	7854461051805486	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+8	1551	7854466156347245	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+1552	1760	7854466158477397	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+45	1588	7854475643644940	CMakeFiles/echo.dir/audio_common.cpp.o	aa79bdd837b4d8e5
+110	1632	7854475644051523	CMakeFiles/echo.dir/audio_player.cpp.o	5e6da97f7ec07b51
+22	1639	7854475644153721	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+134	1815	7854475645976395	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+188	1836	7854475646160431	CMakeFiles/echo.dir/ece420_main.cpp.o	a47113b5ea8c9183
+1837	2083	7854475648578472	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+32	1468	7854476415791525	CMakeFiles/echo.dir/audio_common.cpp.o	aa79bdd837b4d8e5
+7	1508	7854476416300096	CMakeFiles/echo.dir/audio_main.cpp.o	2fd2db5862d450b9
+66	1511	7854476416300096	CMakeFiles/echo.dir/audio_player.cpp.o	5e6da97f7ec07b51
+176	1668	7854476417921887	CMakeFiles/echo.dir/ece420_main.cpp.o	a47113b5ea8c9183
+136	1681	7854476418103890	CMakeFiles/echo.dir/audio_recorder.cpp.o	bf6eb0f74607f639
+1681	2372	7854476424842278	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+12	2570	7854521466954999	CMakeFiles/echo.dir/process_recording.cpp.o	33aa9aee59cdca2e
+2572	2852	7854521469799814	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a
+9	1831	7854527067089482	CMakeFiles/echo.dir/process_recording.cpp.o	33aa9aee59cdca2e
+1832	2045	7854527069323152	C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	4e9de80a5447287a

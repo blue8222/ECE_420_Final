@@ -1,4 +1,4 @@
-# Install script for directory: H:/StudioProjects/lab2/lab2/app/src/main/cpp
+# Install script for directory: C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/src/main/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 # Set default install directory permissions.
 if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-objdump.exe")
+  set(CMAKE_OBJDUMP "C:/Users/Administrator/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-objdump.exe")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

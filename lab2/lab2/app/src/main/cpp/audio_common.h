@@ -33,10 +33,10 @@
 /*
  * Sample Buffer Controls...
  */
-#define RECORD_DEVICE_KICKSTART_BUF_COUNT   128
+#define RECORD_DEVICE_KICKSTART_BUF_COUNT   64
 #define PLAY_KICKSTART_BUFFER_COUNT         3
-#define DEVICE_SHADOW_BUFFER_QUEUE_LEN      128
-#define BUF_COUNT                           128
+#define DEVICE_SHADOW_BUFFER_QUEUE_LEN      64
+#define BUF_COUNT                           4
 
 
 struct SampleFormat {

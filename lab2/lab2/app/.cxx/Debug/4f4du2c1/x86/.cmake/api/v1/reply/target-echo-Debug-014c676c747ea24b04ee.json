@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "H:/StudioProjects/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/x86/libecho.so"
+			"path" : "C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/x86/libecho.so"
 		}
 	],
 	"backtrace" : 1,
@@ -68,7 +68,7 @@
 			],
 			"sysroot" : 
 			{
-				"path" : "C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+				"path" : "C:/Users/Administrator/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
 			}
 		},
 		{
@@ -91,7 +91,7 @@
 			],
 			"sysroot" : 
 			{
-				"path" : "C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+				"path" : "C:/Users/Administrator/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
 			}
 		}
 	],
@@ -132,7 +132,7 @@
 		"language" : "CXX",
 		"sysroot" : 
 		{
-			"path" : "C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
+			"path" : "C:/Users/Administrator/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot"
 		}
 	},
 	"name" : "echo",

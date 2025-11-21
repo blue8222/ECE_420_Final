@@ -1,3 +1,3 @@
-H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/CMakeFiles/echo.dir
-H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/CMakeFiles/edit_cache.dir
-H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/CMakeFiles/rebuild_cache.dir
+C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/CMakeFiles/echo.dir
+C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/CMakeFiles/edit_cache.dir
+C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/CMakeFiles/rebuild_cache.dir

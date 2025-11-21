@@ -94,6 +94,7 @@ Java_com_ece420_lab2_MainActivity_nativeStopAndGetRecording(JNIEnv *env, jclass 
 
     std::lock_guard<std::mutex> lock(g_recordedMutex);
     jsize outLen = static_cast<jsize>(g_recordedPCM.size());
+    LOGI("outLen = %d" , outLen);
     jbyteArray outArr = env->NewByteArray(outLen);
     if (outArr && outLen > 0) {
         env->SetByteArrayRegion(outArr, 0, outLen, reinterpret_cast<const jbyte*>(g_recordedPCM.data()));
@@ -127,11 +128,14 @@ void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
     recQueue_->push(dataBuf);
 
     // Append raw bytes into global collector if enabled.
+
     if (g_collecting.load()) {
         std::vector<uint8_t> localCopy;
         {
             std::lock_guard<std::mutex> lock(g_recordedMutex);
             // If expected capacity was set, avoid growing beyond it (optional safety).
+            LOGI("Callback: dataBuf->cap_=%d dataBuf->size_=%d g_recordedPCM.size()=%zu g_expectedCapacityBytes=%zu g_collecting=%d",
+                 dataBuf->cap_, dataBuf->size_, g_recordedPCM.size(), g_expectedCapacityBytes, (int)g_collecting.load());
             if (g_expectedCapacityBytes == 0 || (g_recordedPCM.size() + dataBuf->size_ <= g_expectedCapacityBytes)) {
                 g_recordedPCM.insert(g_recordedPCM.end(), dataBuf->buf_, dataBuf->buf_ + dataBuf->size_);
             } else {
