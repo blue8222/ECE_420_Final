@@ -1,0 +1,20 @@
+# ninja log v5
+43	505	7853611906116183	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	e6366f9f191dd918
+35	1542	7853611916389992	CMakeFiles/echo.dir/ece420_lib.cpp.o	34d3335b8f074c25
+1245	1348	7854351337640461	H:/StudioProjects/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	deaa4ea57700faac
+8	972	7854351333850473	CMakeFiles/echo.dir/audio_common.cpp.o	2d81e66fde492e20
+15	1041	7854351334540489	CMakeFiles/echo.dir/audio_main.cpp.o	dc3a4e746ecead87
+29	1823	7853611919209984	CMakeFiles/echo.dir/debug_utils.cpp.o	4310b6343d99b423
+21	1023	7854351334350457	CMakeFiles/echo.dir/audio_player.cpp.o	900be0d73aeb58b4
+27	1201	7854351336120485	CMakeFiles/echo.dir/audio_recorder.cpp.o	11e6cb6b7d5cf371
+34	1245	7854351336590459	CMakeFiles/echo.dir/ece420_main.cpp.o	6e51e07078296938
+5	367	7854231554835499	CMakeFiles/echo.dir/StaticAudioPlayer.cpp.o	64ffdff1194720f3
+4	731	7854280088574634	CMakeFiles/echo.dir/generate_tone.cpp.o	3791bb5186dc9961
+13	732	7854280088594625	CMakeFiles/echo.dir/chirp_generate.cpp.o	c2fe1361ec82f1ba
+6	1258	7854329464920816	CMakeFiles/echo.dir/process_recording.cpp.o	3619ca5a647749da
+8	1236	7854354226395888	CMakeFiles/echo.dir/audio_common.cpp.o	2d81e66fde492e20
+28	1279	7854354226805891	CMakeFiles/echo.dir/audio_player.cpp.o	900be0d73aeb58b4
+16	1281	7854354226835914	CMakeFiles/echo.dir/audio_main.cpp.o	dc3a4e746ecead87
+22	1488	7854354228925918	CMakeFiles/echo.dir/audio_recorder.cpp.o	11e6cb6b7d5cf371
+35	1523	7854354229285891	CMakeFiles/echo.dir/ece420_main.cpp.o	6e51e07078296938
+1524	1649	7854354230585890	H:/StudioProjects/lab2/lab2/app/build/intermediates/cxx/Debug/4f4du2c1/obj/arm64-v8a/libecho.so	deaa4ea57700faac

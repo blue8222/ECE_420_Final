@@ -1,0 +1,11 @@
+# ninja log v5
+39	710	7442436357837617	CMakeFiles/echo.dir/kiss_fft/kiss_fft.c.o	c8f485586580a840
+53	4939	7442436400084522	CMakeFiles/echo.dir/ece420_lib.cpp.o	d7cf93ef3ab4cb53
+1	4947	7442436400084522	CMakeFiles/echo.dir/audio_common.cpp.o	dabc20ea33e6dc1d
+61	4967	7442436400241282	CMakeFiles/echo.dir/ece420_main.cpp.o	29e1d19ea38d86
+20	4992	7442436400553848	CMakeFiles/echo.dir/audio_recorder.cpp.o	3624749bcdb0d86e
+12	4996	7442436400553848	CMakeFiles/echo.dir/audio_player.cpp.o	98fc5bc8886b5fda
+16	5010	7442436400714558	CMakeFiles/echo.dir/debug_utils.cpp.o	71c659258a37eda8
+9	5014	7442436400553848	CMakeFiles/echo.dir/audio_main.cpp.o	76dfa364cd48bae3
+5014	5158	7442436402293270	C:/Users/llark/OneDrive/Documents/GitHub/ece420code/structure_labs/lab_files/fromExisting_files/lab2/app/build/intermediates/cxx/Debug/3b2lr6fu/obj/arm64-v8a/libecho.so	ef9b8bbf719f255f
+6	561	7442438652313237	C:/Users/llark/OneDrive/Documents/GitHub/ece420code/structure_labs/lab_files/fromExisting_files/lab2/app/build/intermediates/cxx/Debug/3b2lr6fu/obj/arm64-v8a/libecho.so	ef9b8bbf719f255f

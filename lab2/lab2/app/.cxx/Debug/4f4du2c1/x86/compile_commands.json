@@ -1,0 +1,62 @@
+[
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_common.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_common.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_common.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_main.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_main.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_main.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_player.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_player.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_player.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\audio_recorder.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_recorder.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\audio_recorder.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\debug_utils.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\debug_utils.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\debug_utils.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\kiss_fft\\kiss_fft.c.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\kiss_fft\\kiss_fft.c",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\kiss_fft\\kiss_fft.c"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\ece420_lib.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\ece420_lib.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\ece420_lib.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\ece420_main.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\ece420_main.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\ece420_main.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\StaticAudioPlayer.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\StaticAudioPlayer.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\StaticAudioPlayer.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\generate_tone.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\generate_tone.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\generate_tone.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\chirp_generate.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\chirp_generate.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\chirp_generate.cpp"
+},
+{
+  "directory": "H:/StudioProjects/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+  "command": "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\ndk\\26.1.10909125\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=i686-none-linux-android28 --sysroot=C:/Users/dager/AppData/Local/Android/Sdk/ndk/26.1.10909125/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Decho_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -std=c++11 -Wall -Werror -fno-limit-debug-info  -fPIC -o CMakeFiles\\echo.dir\\process_recording.cpp.o -c H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\process_recording.cpp",
+  "file": "H:\\StudioProjects\\lab2\\lab2\\app\\src\\main\\cpp\\process_recording.cpp"
+}
+]
