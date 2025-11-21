@@ -248,7 +248,7 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
 
     arraySliced = std::vector<float>(recorded.begin() + index, recorded.end());
 
-    arraySliced.resize(recorded.size(), 0.0f);
+    arraySliced.resize(reference_chirp.size(), 0.0f);
 
     LOGI("arraySliced.size() = %zu, reference_chirp.size() = %zu", arraySliced.size(), reference_chirp.size());
     assert(arraySliced.size() == reference_chirp.size());
