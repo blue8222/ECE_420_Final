@@ -255,7 +255,7 @@ public class MainActivity extends Activity
 
             // Update screen, needs to be done on UI thread
             //publishProgress(getFreqUpdate());
-            publishProgress(getDistanceUpdate())
+            publishProgress(getDistanceUpdate());
             return null;
         }
 
@@ -289,6 +289,7 @@ public class MainActivity extends Activity
     public static native void startPlay();
     public static native void stopPlay();
 
+    public static native void startEcho();
     public static native float getDistanceUpdate();
 
 }

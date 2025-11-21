@@ -165,10 +165,7 @@ std::vector<float> findPeaks(const std::vector<float>& correlation, const std::v
         }
     }
     
-    
-    // chirp length
     int chirp_len = reference_chirp.size();
-    
     // find peak, the gap between two peaks must be larger than a threshold
     int min_distance = FS * 0.01;  
     
@@ -189,7 +186,6 @@ std::vector<float> findPeaks(const std::vector<float>& correlation, const std::v
                 Peak peak;
                 peak.index = i;
                 peak.value = normalized_val;
-                
                 // include time delay
                 int lag = i - chirp_len + 1;
                 float time_delay = (float)lag / FS;
