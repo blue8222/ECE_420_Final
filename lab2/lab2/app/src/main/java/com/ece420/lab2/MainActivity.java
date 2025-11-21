@@ -140,8 +140,10 @@ public class MainActivity extends Activity
 
             // Get recorded buffer from native
             byte[] recorded = nativeStopAndGetRecording();
+            float[] multiSignal = getMultSignal();
 
             WaveformView waveformView = findViewById(R.id.waveformView);
+            FFTView fftView = findViewById(R.id.fftVieww);
 
             if (recorded != null) {
                 // Convert byte[] → short[] PCM
@@ -151,6 +153,8 @@ public class MainActivity extends Activity
                 }
 
                 waveformView.setAudioData(pcm);
+                fftView.setAudioData(multiSignal);
+
             }
 
             // Debug log
@@ -297,6 +301,8 @@ public class MainActivity extends Activity
     public static native byte[] generateChirpPCMNative();
 
     private static native AnalysisResult analyzeRecordedBuffer(byte[] pcmBytes, int sampleRate, byte[] referenceChirpBytes);
+
+    public static native float[] getMultSignal();
 
     public static void onNativeAnalysisResult(final boolean voiced, final int freq) {
         // instance might be null if activity is gone or destroyed

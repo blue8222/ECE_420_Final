@@ -19,8 +19,9 @@
 
 #define V_s 343.0
 
+static std::vector<float> g_mult_signal;  
 
-
+static std::mutex g_fft_mutex;
 //static constexpr float SPEED_OF_SOUND_MS = 343.0f;
 
 
@@ -275,6 +276,11 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
         mult[n] = arraySliced[n]*reference_chirp[n];
     }
 
+    {
+        std::lock_guard<std::mutex> lock(g_fft_mutex);
+        g_mult_signal = mult;  //
+    }
+
     //take FFT
     std::vector<std::complex<float>> FFT;
     std::vector<float> FFT_mag;
@@ -358,10 +364,10 @@ Java_com_ece420_lab2_MainActivity_analyzeRecordedBuffer(JNIEnv *env, jclass claz
         env->GetByteArrayRegion(referenceChirpBytes, 0, len, reinterpret_cast<jbyte*>(refVec.data()));
         refPtr = &refVec;
     }
-
+    
     // Call the C++ method
     AnalysisResult res = analyzeRecordedBuffer(pcmVec, sampleRate, refPtr);
-
+    
     // Create and populate the Java AnalysisResult object
     jclass resultClass = env->FindClass("com/ece420/lab2/MainActivity$AnalysisResult");
     if (resultClass == NULL) {
@@ -393,3 +399,14 @@ Java_com_ece420_lab2_MainActivity_analyzeRecordedBuffer(JNIEnv *env, jclass claz
 
     return obj;
 }
+
+Java_com_ece420_lab2_MainActivity_getMultiSignal(JNIEnv *env, jclass clazz){
+    jfloatArray result = env->NewFloatArray(g_mult_signal.size());
+    if (result == nullptr) {
+        LOGI("Failed to allocate float array");
+        return nullptr;
+    }
+    
+    env->SetFloatArrayRegion(result, 0, g_mult_signal.size(), g_mult_signal.data());
+    return result;
+} 
