@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "echo::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-echo-Debug-9e839f9d7ea7e93b8e63.json",
+					"jsonFile" : "target-echo-Debug-283a4a996d2223d080f6.json",
 					"name" : "echo",
 					"projectIndex" : 0
 				}
@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/arm64-v8a",
-		"source" : "C:/Users/Administrator/ECE 420/420final/ECE_420_Final/lab2/lab2/app/src/main/cpp"
+		"build" : "H:/ECE 420/old/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86",
+		"source" : "H:/ECE 420/old/ECE_420_Final/lab2/lab2/app/src/main/cpp"
 	},
 	"version" : 
 	{

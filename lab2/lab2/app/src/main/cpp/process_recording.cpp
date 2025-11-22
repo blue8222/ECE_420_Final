@@ -21,6 +21,7 @@
 
 
 
+
 //static constexpr float SPEED_OF_SOUND_MS = 343.0f;
 
 
@@ -222,36 +223,29 @@ static Peak findMaxPeak(const std::vector<float>& correlation)
     return result;
 }
 
-static Peak findFFTPeak(const std::vector<float>& arr,
-                        int startIndex,
-                        int endIndex)
+int maxIndex(std::vector<float>& arr,
+             int startIndex_,
+             int endIndex_)
 {
-    Peak result{};
-    result.index = -1;      // signal "no peak found"
-    result.value = 0.0f;
-    result.distance_m = 0.0f;
 
-    if (arr.empty()) return result;
+    // Validate bounds
+    if (startIndex_ < 0 || endIndex_ > static_cast<int>(arr.size()) || startIndex_ >= endIndex_) {
+        return -1; // or throw std::out_of_range(...)
+    }
 
-    // clamp bounds defensively
-    if (startIndex < 0) startIndex = 0;
-    if (endIndex >= static_cast<int>(arr.size())) endIndex = static_cast<int>(arr.size()) - 1;
-    if (startIndex > endIndex) return result; // invalid search range
+    int maxIdx = startIndex_;
+    float maxVal = arr[startIndex_];
 
-    int best_idx = startIndex;
-    float best_val = arr[startIndex];
-
-    for (int i = startIndex + 1; i <= endIndex; ++i) {
-        if (arr[i] > best_val) {
-            best_val = arr[i];
-            best_idx = i;
+    for (int i = startIndex_ + 1; i < endIndex_; ++i) {
+        if (arr[i] > maxVal) {
+            maxVal = arr[i];
+            maxIdx = i;
         }
     }
 
-    result.index = best_idx;
-    result.value = best_val;
-    return result;
+    return maxIdx;
 }
+
 
 // Top-level function used earlier as distanceEstimation; now embedded in analyzeRecordedBuffer
 static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
@@ -316,13 +310,14 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
     if (FFT_mag.empty()) return -1.0;
 
    // Peak F_p = findFFTPeak(FFT_mag, 50, static_cast<int>(FFT_mag.size()) - 1);
-
-    Peak F_p = findFFTPeak(FFT_mag, 45, 1000);
+    Peak F_p;
+    F_p.index = maxIndex(FFT_mag, 10, 1000);
     if (F_p.index < 0) return -1.0;
 
     // convert bin -> frequency (Hz)
     // takeFFT produced magnitudes length = halfN (N/2+1), but frequency resolution is sampleRate / N
     double freq_hz = static_cast<double>(F_p.index) * static_cast<double>(sampleRate) / static_cast<double>(N);
+    LOGI("N = %d", N);
 
     // Validate chirp params (sweepTime, bandwidth) - make sure they are non-zero and available
     if (bandwidth <= 0.0 || sweepTime <= 0.0) {
@@ -331,11 +326,16 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
     }
 
     // compute range R and distance D
-    double R = (V_s * sweepTime * freq_hz) / static_cast<double>(bandwidth);
-    double D = R / 2.0;
+    float R = (V_s * sweepTime * freq_hz) / static_cast<float>(bandwidth);
 
-    // sanity: reject obviously-bad values
-    if (!std::isfinite(D) || D <= 0.0) return -1.0;
+    LOGI("R = %f", R);
+    LOGI("V_s = %f", V_s);
+    LOGI("sweepTime= %f", sweepTime);
+    LOGI("freq_hz = %f", freq_hz);
+
+    float D = R / 2.0;
+
+    LOGI("D = %f", D);
 
     return D;
 }

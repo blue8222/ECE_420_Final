@@ -143,6 +143,13 @@ public class MainActivity extends Activity
             // Get recorded buffer from native
             byte[] recorded = nativeStopAndGetRecording();
 
+            deleteAudioRecorder();
+
+            Log.i("MainActivity", "deleteSLBufferQueueAudioPlayer()");
+            deleteSLBufferQueueAudioPlayer();
+
+
+
             WaveformView waveformView = findViewById(R.id.waveformView);
 
             if (recorded != null) {
@@ -175,7 +182,13 @@ public class MainActivity extends Activity
 
             FFTView FFTView = findViewById(R.id.FFTView);
 
+            FFTView.setXLimitsIndices(10, 500);
+
             FFTView.setAudioData(result.FFT);
+
+            recorded = null;
+
+
 
 
 
@@ -185,8 +198,8 @@ public class MainActivity extends Activity
 
             if (result != null) {
                 String msg = String.format(Locale.US,
-                        "Distance: %.2f m\n",
-                        result.distance_m
+                        "Distance: %f m\n",
+                        result.distance_m / 2
                 );
                 distanceView.setText(msg);
 

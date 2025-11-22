@@ -68,6 +68,8 @@ static std::mutex          g_recordedMutex;
 static std::atomic<bool>   g_collecting(false);
 static size_t              g_expectedCapacityBytes = 0;
 
+static std::vector<uint8_t> g_completedPCM;   // finished recording ready for Java
+
 // Java JNI helpers (call from Java to control collection):
 // Java side signatures:
 //   public static native void nativeStartCollect(int expectedBytes);
@@ -78,6 +80,9 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_ece420_lab2_MainActivity_nativeStartCollect(JNIEnv * /*env*/, jclass /*clazz*/, jint expectedBytes) {
     std::lock_guard<std::mutex> lock(g_recordedMutex);
     g_recordedPCM.clear();
+    g_recordedPCM.shrink_to_fit();
+    g_completedPCM.clear();
+    g_completedPCM.shrink_to_fit();
     if (expectedBytes > 0) {
         g_recordedPCM.reserve(static_cast<size_t>(expectedBytes));
         g_expectedCapacityBytes = static_cast<size_t>(expectedBytes);
@@ -93,19 +98,32 @@ Java_com_ece420_lab2_MainActivity_nativeStopAndGetRecording(JNIEnv *env, jclass 
     g_collecting.store(false);
 
     std::lock_guard<std::mutex> lock(g_recordedMutex);
-    jsize outLen = static_cast<jsize>(g_recordedPCM.size());
-    LOGI("outLen = %d" , outLen);
+
+    // Prefer returning completed buffer if the callback moved it there
+    std::vector<uint8_t> *src = nullptr;
+    if (!g_completedPCM.empty()) {
+        src = &g_completedPCM;
+    } else {
+        src = &g_recordedPCM;
+    }
+
+    jsize outLen = static_cast<jsize>(src->size());
+    LOGI("nativeStopAndGetRecording outLen = %d" , outLen);
+
     jbyteArray outArr = env->NewByteArray(outLen);
     if (outArr && outLen > 0) {
-        env->SetByteArrayRegion(outArr, 0, outLen, reinterpret_cast<const jbyte*>(g_recordedPCM.data()));
+        env->SetByteArrayRegion(outArr, 0, outLen, reinterpret_cast<const jbyte*>(src->data()));
     }
-    // Optionally free the native buffer after handing data to Java:
+
+    // clear both buffers after handing data back to Java
     g_recordedPCM.clear();
     g_recordedPCM.shrink_to_fit();
+    g_completedPCM.clear();
+    g_completedPCM.shrink_to_fit();
     g_expectedCapacityBytes = 0;
+
     return outArr;
 }
-
 // ---- Original AudioRecorder methods, modified to append to g_recordedPCM ----
 
 void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
@@ -151,13 +169,18 @@ void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
 
             // If we reached or exceeded expected capacity, take a copy and reset collecting
             if (g_expectedCapacityBytes > 0 && g_recordedPCM.size() >= g_expectedCapacityBytes) {
-                // copy bytes out under lock, then clear buffer so we don't repeat callback
-                localCopy = g_recordedPCM;     // copy
+                // Move the collected bytes to the completed buffer under lock, then stop collecting.
+                g_completedPCM = std::move(g_recordedPCM); // ownership transferred; g_recordedPCM now empty
                 g_recordedPCM.clear();
                 g_recordedPCM.shrink_to_fit();
                 // stop collecting until Java restarts it
                 g_collecting.store(false);
                 g_expectedCapacityBytes = 0;
+                // we still have a local copy variable out of the lock in previous code path for analysis,
+                // but now the data we want to return to Java lives in g_completedPCM.
+                // If you want to analyze here as well, you can move from g_completedPCM or use the existing code.
+                // (If analysis needs to happen outside the lock, copy or move to a local vector.)
+                localCopy = g_completedPCM; // optional: make a local copy for analysis
             }
         } // unlock here
 
@@ -336,9 +359,19 @@ SLboolean  AudioRecorder::Stop(void) {
     result = (*recBufQueueItf_)->Clear(recBufQueueItf_);
     SLASSERT(result);
 
+
 #ifdef ENABLE_LOG
     recLog_->flush();
 #endif
+
+    // Return any remaining devShadowQueue_ buffers back into freeQueue_ now that recording is stopped
+    if (devShadowQueue_ && freeQueue_) {
+        sample_buf *buf = nullptr;
+        while (devShadowQueue_->front(&buf)) {
+            devShadowQueue_->pop();
+            freeQueue_->push(buf);
+        }
+    }
 
     // We do NOT automatically turn off collection here because the Java side will call
     // nativeStopAndGetRecording() to retrieve data.

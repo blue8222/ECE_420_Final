@@ -1,27 +1,27 @@
 {
   "buildFiles": [
-    "C:\\Users\\Administrator\\ECE 420\\420final\\ECE_420_Final\\lab2\\lab2\\app\\src\\main\\cpp\\CMakeLists.txt",
-    "C:\\Users\\Administrator\\ECE 420\\420final\\ECE_420_Final\\lab2\\lab2\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
+    "H:\\ECE 420\\old\\ECE_420_Final\\lab2\\lab2\\app\\src\\main\\cpp\\CMakeLists.txt",
+    "H:\\ECE 420\\old\\ECE_420_Final\\lab2\\lab2\\app\\src\\main\\cpp\\ndk-stl-config.cmake"
   ],
   "cleanCommandsComponents": [
     [
-      "C:\\Users\\Administrator\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
-      "C:\\Users\\Administrator\\ECE 420\\420final\\ECE_420_Final\\lab2\\lab2\\app\\.cxx\\Debug\\4f4du2c1\\x86",
+      "H:\\ECE 420\\old\\ECE_420_Final\\lab2\\lab2\\app\\.cxx\\Debug\\4f4du2c1\\x86",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
-    "C:\\Users\\Administrator\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "C:\\Users\\dager\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
-    "C:\\Users\\Administrator\\ECE 420\\420final\\ECE_420_Final\\lab2\\lab2\\app\\.cxx\\Debug\\4f4du2c1\\x86",
+    "H:\\ECE 420\\old\\ECE_420_Final\\lab2\\lab2\\app\\.cxx\\Debug\\4f4du2c1\\x86",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {
     "echo::@6890427a1f51a3e7e1df": {
       "artifactName": "echo",
       "abi": "x86",
-      "output": "C:\\Users\\Administrator\\ECE 420\\420final\\ECE_420_Final\\lab2\\lab2\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\x86\\libecho.so",
+      "output": "H:\\ECE 420\\old\\ECE_420_Final\\lab2\\lab2\\app\\build\\intermediates\\cxx\\Debug\\4f4du2c1\\obj\\x86\\libecho.so",
       "runtimeFiles": []
     }
   }
