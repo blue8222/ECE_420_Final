@@ -10,6 +10,8 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.os.Bundle;
 import android.os.Handler;
+
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.AsyncTask;
@@ -140,10 +142,8 @@ public class MainActivity extends Activity
 
             // Get recorded buffer from native
             byte[] recorded = nativeStopAndGetRecording();
-            float[] multiSignal = getMultSignal();
 
             WaveformView waveformView = findViewById(R.id.waveformView);
-            FFTView fftView = findViewById(R.id.fftVieww);
 
             if (recorded != null) {
                 // Convert byte[] → short[] PCM
@@ -153,8 +153,6 @@ public class MainActivity extends Activity
                 }
 
                 waveformView.setAudioData(pcm);
-                fftView.setAudioData(multiSignal);
-
             }
 
             // Debug log
@@ -172,7 +170,18 @@ public class MainActivity extends Activity
             }
 
             // Analyze the recorded audio
+
             AnalysisResult result = analyzeRecordedBuffer(recorded, sampleRate, chirp);
+
+            FFTView FFTView = findViewById(R.id.FFTView);
+
+            FFTView.setAudioData(result.FFT);
+
+
+
+
+            Log.i("ECHO_DEBUG", "FFT = " + Arrays.toString(result.FFT));
+
 
             if (result != null) {
                 String msg = String.format(Locale.US,
@@ -180,6 +189,9 @@ public class MainActivity extends Activity
                         result.distance_m
                 );
                 distanceView.setText(msg);
+
+
+
             } else {
                 distanceView.setText("Analysis failed.");
             }
@@ -264,6 +276,7 @@ public class MainActivity extends Activity
 
     public static class AnalysisResult {
         public boolean distance_valid;
+        public float[] FFT;
         public double distance_m;
     }
 
@@ -301,8 +314,6 @@ public class MainActivity extends Activity
     public static native byte[] generateChirpPCMNative();
 
     private static native AnalysisResult analyzeRecordedBuffer(byte[] pcmBytes, int sampleRate, byte[] referenceChirpBytes);
-
-    public static native float[] getMultSignal();
 
     public static void onNativeAnalysisResult(final boolean voiced, final int freq) {
         // instance might be null if activity is gone or destroyed

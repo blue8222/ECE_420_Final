@@ -19,9 +19,8 @@
 
 #define V_s 343.0
 
-static std::vector<float> g_mult_signal;  
 
-static std::mutex g_fft_mutex;
+
 //static constexpr float SPEED_OF_SOUND_MS = 343.0f;
 
 
@@ -129,52 +128,75 @@ struct Peak {
 };
 
 void takeFFT(const std::vector<float>& inReal,
-                         std::vector<std::complex<float>>& outSpectrum,
-                         std::vector<float>& outMagnitudes)
+             std::vector<std::complex<float>>& outSpectrum,
+             std::vector<float>& outMagnitudes,
+             bool applyHamming = false,
+             bool returnDb = false)
 {
     int N = static_cast<int>(inReal.size());
     outSpectrum.clear();
     outMagnitudes.clear();
     if (N <= 0) return;
 
-    // optional: copy and window
+    // copy input (and optionally apply Hamming window)
     std::vector<float> data(inReal);
+    if (applyHamming) {
+        float denom = (N > 1) ? static_cast<float>(N - 1) : 1.0f;
+        for (int n = 0; n < N; ++n) {
+            float w = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / denom);
+            data[n] *= w;
+        }
+    }
 
     // Prepare kiss input and output buffers
     std::vector<kiss_fft_cpx> fin(N);
     std::vector<kiss_fft_cpx> fout(N);
-
     for (int i = 0; i < N; ++i) {
         fin[i].r = data[i];
-        fin[i].i = 0;
+        fin[i].i = 0.0f;
     }
 
-    // Allocate config (inverse_fft = 0 for forward FFT)
+    // Allocate config (forward FFT)
     kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, nullptr, nullptr);
     if (!cfg) {
-        // allocation failed
         return;
     }
 
     // Execute FFT
     kiss_fft(cfg, fin.data(), fout.data());
 
-    // Convert to std::complex and compute magnitudes
+    // Build full complex spectrum (size N)
     outSpectrum.resize(N);
-    outMagnitudes.resize(N);
     for (int k = 0; k < N; ++k) {
         outSpectrum[k] = std::complex<float>(fout[k].r, fout[k].i);
-        outMagnitudes[k] = std::hypot(fout[k].r, fout[k].i); // sqrt(r^2 + i^2)
     }
 
-    // free config
+    // Normalize and compute single-sided magnitudes (bins 0 .. halfN-1)
+    int halfN = N/2 + 1; // works for even/odd N
+    outMagnitudes.resize(halfN);
+
+    const float scale = 1.0f / static_cast<float>(N); // normalization by N
+    for (int k = 0; k < halfN; ++k) {
+        float r = fout[k].r;
+        float i = fout[k].i;
+        float mag = std::hypot(r, i) * scale; // normalized magnitude
+
+        // for real input, double the energy in non-DC and non-Nyquist bins
+        if (k != 0 && !(N % 2 == 0 && k == N/2)) {
+            mag *= 2.0f;
+        }
+
+        if (returnDb) {
+            // convert to dB (guard against log(0))
+            float db = 20.0f * std::log10f(mag + 1e-12f);
+            outMagnitudes[k] = db;
+        } else {
+            outMagnitudes[k] = mag;
+        }
+    }
+
     kiss_fft_free(cfg);
-
-    // Note: kiss_fft does NOT normalize the transform. If you want amplitude to reflect
-    // input-sample amplitudes, divide magnitudes (or the spectrum) by N:
-    // for (auto &m : outMagnitudes) m /= static_cast<float>(N);
 }
-
 
 static Peak findMaxPeak(const std::vector<float>& correlation)
 {
@@ -233,71 +255,89 @@ static Peak findFFTPeak(const std::vector<float>& arr,
 
 // Top-level function used earlier as distanceEstimation; now embedded in analyzeRecordedBuffer
 static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
-                                          const std::vector<float>& reference_chirp)
+                                          const std::vector<float>& reference_chirp,
+                                          int sampleRate,
+                                          std::vector<float>& FFT_return)
 {
-    if (recorded.empty() || reference_chirp.empty()) return -1.0;
+    if (recorded.empty() || reference_chirp.empty() || sampleRate <= 0) return -1.0;
+
     std::vector<float> corr = correlate(recorded, reference_chirp);
     if (corr.empty()) return -1.0;
+
     Peak peak = findMaxPeak(corr);
+    if (peak.index < 0) return -1.0;
 
-    int index = peak.index;
-    double cancel_factor = 0.5;
+    // convert correlation index -> lag (samples)
+    // correlate() places lag=0 at index (len_b - 1)
+    int refLen = static_cast<int>(reference_chirp.size());
+    int lag = peak.index - (refLen - 1);
+    if (lag < 0) lag = 0;
+    if (lag > static_cast<int>(recorded.size())) lag = static_cast<int>(recorded.size());
 
+    // slice recorded from lag
     std::vector<float> arraySliced;
+    if (lag < static_cast<int>(recorded.size()))
+        arraySliced = std::vector<float>(recorded.begin() + lag, recorded.end());
+    else
+        arraySliced.clear();
 
-// safety check
-    if (index < 0) index = 0;
-    if (index > (int)recorded.size()) index = recorded.size();
-
-    arraySliced = std::vector<float>(recorded.begin() + index, recorded.end());
-
+    // ensure we have at least reference length; pad/truncate
     arraySliced.resize(reference_chirp.size(), 0.0f);
 
-    LOGI("arraySliced.size() = %zu, reference_chirp.size() = %zu", arraySliced.size(), reference_chirp.size());
-    assert(arraySliced.size() == reference_chirp.size());
-
-    //apply cancelation
-
-    for(int i = 0; i < arraySliced.size(); i++) {
-        arraySliced[i] = arraySliced[i] - cancel_factor*reference_chirp[i];
+    // cancellation
+    const float cancel_factor = 0.5f;
+    for (size_t i = 0; i < arraySliced.size(); ++i) {
+        arraySliced[i] = arraySliced[i] - cancel_factor * reference_chirp[i];
     }
 
-    //apply hamming window
-    float denom = arraySliced.size() - 1.0f;
-
-    for (int n = 0; n < arraySliced.size(); n++) {
-        arraySliced[n] = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / denom);
+    // apply Hamming window (guard denom)
+    int N = static_cast<int>(arraySliced.size());
+    if (N <= 0) return -1.0;
+    if (N > 1) {
+        float denom = static_cast<float>(N - 1);
+        for (int n = 0; n < N; ++n) {
+            float w = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / denom);
+            arraySliced[n] *= w;
+        }
     }
 
-    //multply signals
-    std::vector<float> mult(arraySliced.size());
-
-    for (int n = 0; n < arraySliced.size(); n++) {
-        mult[n] = arraySliced[n]*reference_chirp[n];
+    // multiply with reference
+    std::vector<float> mult(N);
+    for (int n = 0; n < N; ++n) {
+        mult[n] = arraySliced[n] * reference_chirp[n];
     }
 
-    {
-        std::lock_guard<std::mutex> lock(g_fft_mutex);
-        g_mult_signal = mult;  //
-    }
-
-    //take FFT
+    // take FFT
     std::vector<std::complex<float>> FFT;
     std::vector<float> FFT_mag;
-
     takeFFT(mult, FFT, FFT_mag);
+    FFT_return = FFT_mag; // pass back magnitudes for UI/debug
 
-    Peak F_p = findFFTPeak(FFT_mag, 0, FFT_mag.size() - 1);
+    if (FFT_mag.empty()) return -1.0;
 
-    double R = (V_s * sweepTime * F_p.distance_m) / bandwidth;
-    double D = R/2;
+   // Peak F_p = findFFTPeak(FFT_mag, 50, static_cast<int>(FFT_mag.size()) - 1);
+
+    Peak F_p = findFFTPeak(FFT_mag, 45, 1000);
+    if (F_p.index < 0) return -1.0;
+
+    // convert bin -> frequency (Hz)
+    // takeFFT produced magnitudes length = halfN (N/2+1), but frequency resolution is sampleRate / N
+    double freq_hz = static_cast<double>(F_p.index) * static_cast<double>(sampleRate) / static_cast<double>(N);
+
+    // Validate chirp params (sweepTime, bandwidth) - make sure they are non-zero and available
+    if (bandwidth <= 0.0 || sweepTime <= 0.0) {
+        LOGI("bandwidth or sweepTime invalid: bw=%f, t=%f", bandwidth, sweepTime);
+        return -1.0;
+    }
+
+    // compute range R and distance D
+    double R = (V_s * sweepTime * freq_hz) / static_cast<double>(bandwidth);
+    double D = R / 2.0;
+
+    // sanity: reject obviously-bad values
+    if (!std::isfinite(D) || D <= 0.0) return -1.0;
+
     return D;
-
-
-
-
-
-    //return static_cast<double>(peak.distance_m);
 }
 
 // ----------------- Main analyze function -----------------
@@ -308,6 +348,7 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
 
     res.distance_valid = false;
     res.distance_m = -1.0;
+    res.FFT = {};
 
     // Convert to int16 samples
     std::vector<int16_t> samples = bytesToInt16(pcmBytes);
@@ -326,8 +367,16 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
             std::vector<float> refFloat = int16ToFloat(refInt16);
 
 
+            std::vector<float> FFT_return;
+            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat, sampleRate, FFT_return);
 
-            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat);
+            LOGI("dist = %f", dist);
+
+
+
+
+            res.FFT = FFT_return;
+
             if (dist > 0.0) {
                 res.distance_valid = true;
                 res.distance_m = dist;
@@ -364,11 +413,17 @@ Java_com_ece420_lab2_MainActivity_analyzeRecordedBuffer(JNIEnv *env, jclass claz
         env->GetByteArrayRegion(referenceChirpBytes, 0, len, reinterpret_cast<jbyte*>(refVec.data()));
         refPtr = &refVec;
     }
-    
-    // Call the C++ method
+
+
+
+
+    // -------- Call C++ analyzer --------
     AnalysisResult res = analyzeRecordedBuffer(pcmVec, sampleRate, refPtr);
-    
-    // Create and populate the Java AnalysisResult object
+
+
+
+
+            // Create and populate the Java AnalysisResult object
     jclass resultClass = env->FindClass("com/ece420/lab2/MainActivity$AnalysisResult");
     if (resultClass == NULL) {
         // Handle error (e.g., throw exception or log)
@@ -397,16 +452,29 @@ Java_com_ece420_lab2_MainActivity_analyzeRecordedBuffer(JNIEnv *env, jclass claz
     }
     env->SetDoubleField(obj, distField, static_cast<jdouble>(res.distance_m));
 
+
+
+    jfieldID FFTField = env->GetFieldID(resultClass, "FFT", "[F");
+    if (FFTField == NULL) {
+        return NULL;
+    }
+
+// create jfloatArray (size as jint)
+    jsize fftSize = static_cast<jsize>(res.FFT.size());
+    jfloatArray jFFT = env->NewFloatArray(fftSize);
+    if (jFFT != NULL && fftSize > 0) {
+        // SetFloatArrayRegion expects jfloat*, so cast from float*
+        env->SetFloatArrayRegion(jFFT, 0, fftSize, reinterpret_cast<const jfloat*>(res.FFT.data()));
+    }
+// attach array to the Java object
+
+    env->SetObjectField(obj, FFTField, jFFT);
+
+
+
+
+
+
+
     return obj;
 }
-
-Java_com_ece420_lab2_MainActivity_getMultiSignal(JNIEnv *env, jclass clazz){
-    jfloatArray result = env->NewFloatArray(g_mult_signal.size());
-    if (result == nullptr) {
-        LOGI("Failed to allocate float array");
-        return nullptr;
-    }
-    
-    env->SetFloatArrayRegion(result, 0, g_mult_signal.size(), g_mult_signal.data());
-    return result;
-} 

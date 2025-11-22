@@ -11,7 +11,7 @@
 #include <cstdint>
 
 
-#define sweepTime 0.5
+#define sweepTime 0.35
 #define minFreq 8000.0
 #define bandwidth 10000.0
 

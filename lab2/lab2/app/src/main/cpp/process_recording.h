@@ -13,6 +13,7 @@ struct AnalysisResult {
 
     bool distance_valid;  // whether a distance estimate is available
     double distance_m;    // distance in meters (if distance_valid == true)
+    std::vector<float> FFT;
 };
 
 /**
