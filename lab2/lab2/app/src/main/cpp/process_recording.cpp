@@ -19,6 +19,8 @@
 
 #define V_s 343.0
 
+#define cancel_factor 0
+
 
 
 
@@ -68,7 +70,10 @@ static std::vector<float> correlate(const std::vector<float>& a, const std::vect
     size_t len_b = b.size();
     if (len_a == 0 || len_b == 0) return {};
 
-    size_t nfft = len_a + len_b - 1; // as in your snippet
+    size_t nfft = len_a + len_b - 1; // linear correlation length
+
+    // sanity check for int conversion
+    if (nfft > static_cast<size_t>(std::numeric_limits<int>::max())) return {};
 
     // Allocate Kiss FFT configs
     kiss_fft_cfg fwd = kiss_fft_alloc(static_cast<int>(nfft), 0, nullptr, nullptr);
@@ -79,7 +84,7 @@ static std::vector<float> correlate(const std::vector<float>& a, const std::vect
         return {};
     }
 
-    // Prepare input buffers as kiss_fft_cpx arrays (real -> imag 0)
+    // Prepare input buffers (zero padded)
     std::vector<kiss_fft_cpx> in_a(nfft);
     std::vector<kiss_fft_cpx> in_b(nfft);
     std::memset(in_a.data(), 0, nfft * sizeof(kiss_fft_cpx));
@@ -87,7 +92,7 @@ static std::vector<float> correlate(const std::vector<float>& a, const std::vect
     for (size_t i = 0; i < len_a; ++i) { in_a[i].r = a[i]; in_a[i].i = 0.0f; }
     for (size_t i = 0; i < len_b; ++i) { in_b[i].r = b[i]; in_b[i].i = 0.0f; }
 
-    // FFT outputs
+    // FFT
     std::vector<kiss_fft_cpx> fft_a(nfft);
     std::vector<kiss_fft_cpx> fft_b(nfft);
     kiss_fft(fwd, in_a.data(), fft_a.data());
@@ -112,12 +117,14 @@ static std::vector<float> correlate(const std::vector<float>& a, const std::vect
     kiss_fft_free(fwd);
     kiss_fft_free(inv);
 
-    // Extract real part and normalize by nfft (kiss_fft doesn't scale)
+    // Extract real part, normalize, and **roll forward** by (len_b - 1)
     std::vector<float> result(nfft);
+    const float scale = 1.0f / static_cast<float>(nfft);
+    size_t shift = len_b - 1;
     for (size_t i = 0; i < nfft; ++i) {
-        // shift so index (len_b-1) corresponds to lag 0
-        size_t shifted_idx = (i + nfft - (len_b - 1)) % nfft;
-        result[shifted_idx] = corr_cpx[i].r / static_cast<float>(nfft);
+        // place corr_cpx[i] into result[(i + shift) % nfft]
+        size_t idx = (i + shift) % nfft;
+        result[idx] = corr_cpx[i].r * scale;
     }
     return result;
 }
@@ -279,7 +286,7 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
     arraySliced.resize(reference_chirp.size(), 0.0f);
 
     // cancellation
-    const float cancel_factor = 0.5f;
+
     for (size_t i = 0; i < arraySliced.size(); ++i) {
         arraySliced[i] = arraySliced[i] - cancel_factor * reference_chirp[i];
     }
@@ -311,12 +318,14 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
 
    // Peak F_p = findFFTPeak(FFT_mag, 50, static_cast<int>(FFT_mag.size()) - 1);
     Peak F_p;
-    F_p.index = maxIndex(FFT_mag, 10, 1000);
+    F_p.index = maxIndex(FFT_mag, 50, 2000);
     if (F_p.index < 0) return -1.0;
 
     // convert bin -> frequency (Hz)
     // takeFFT produced magnitudes length = halfN (N/2+1), but frequency resolution is sampleRate / N
-    double freq_hz = static_cast<double>(F_p.index) * static_cast<double>(sampleRate) / static_cast<double>(N);
+    double peak_bin = static_cast<double>(F_p.index);
+
+    double freq_hz = peak_bin * (sampleRate / static_cast<double>(N));
     LOGI("N = %d", N);
 
     // Validate chirp params (sweepTime, bandwidth) - make sure they are non-zero and available
@@ -331,6 +340,7 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
     LOGI("R = %f", R);
     LOGI("V_s = %f", V_s);
     LOGI("sweepTime= %f", sweepTime);
+    LOGI("peak_bin = %f", peak_bin);
     LOGI("freq_hz = %f", freq_hz);
 
     float D = R / 2.0;
@@ -456,6 +466,7 @@ Java_com_ece420_lab2_MainActivity_analyzeRecordedBuffer(JNIEnv *env, jclass claz
 
     jfieldID FFTField = env->GetFieldID(resultClass, "FFT", "[F");
     if (FFTField == NULL) {
+        LOGI("FFTFIELD NOT FOUND");
         return NULL;
     }
 

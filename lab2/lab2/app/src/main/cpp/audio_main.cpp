@@ -87,7 +87,7 @@ Java_com_ece420_lab2_MainActivity_createSLEngine(
     engine.staticPlayer_ = nullptr;
     engine.staticPcmBuffer_ = nullptr;
     engine.staticPcmSizeBytes_ = 0;
-    engine.recordLength = 0;
+    engine.recordLength = recordLength;
 
 
     engine.slEngineObj_ = nullptr;
@@ -109,6 +109,9 @@ Java_com_ece420_lab2_MainActivity_createSLEngine(
     engine.bufCount_ = (int) (sampleRate/bufSize)*recordLength;
 
     engine.bufs_ = allocateSampleBufs(engine.bufCount_, bufSize);
+
+    LOGI("engine bufCount = %d", engine.bufCount_);
+
     assert(engine.bufs_);
 
     engine.freeBufQueue_ = new AudioQueue(engine.bufCount_);

@@ -117,9 +117,9 @@ Java_com_ece420_lab2_MainActivity_nativeStopAndGetRecording(JNIEnv *env, jclass 
 
     // clear both buffers after handing data back to Java
     g_recordedPCM.clear();
-    g_recordedPCM.shrink_to_fit();
+    //g_recordedPCM.shrink_to_fit();
     g_completedPCM.clear();
-    g_completedPCM.shrink_to_fit();
+    //g_completedPCM.shrink_to_fit();
     g_expectedCapacityBytes = 0;
 
     return outArr;
@@ -131,15 +131,34 @@ void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
     recLog_->logTime();
 #endif
     assert(bq == recBufQueueItf_);
+
+    LOGI("Callback ENTRY: devShadow size=%d recQueue size=%d freeQueue size=%d g_collecting=%d g_recordedPCM.size=%zu g_expectedCapacityBytes=%zu",
+         devShadowQueue_ ? devShadowQueue_->size() : -1,
+         recQueue_ ? recQueue_->size() : -1,
+         freeQueue_ ? freeQueue_->size() : -1,
+         (int)g_collecting.load(),
+         g_recordedPCM.size(),
+         g_expectedCapacityBytes);
+
+
     sample_buf *dataBuf = NULL;
     if (!devShadowQueue_->front(&dataBuf)) {
         // unexpected: callback but no devShadow buffer available
-        LOGE("ProcessSLCallback: devShadowQueue empty");
+        LOGE("ProcessSLCallback: devShadowQueue empty! devShadow size=%d freeQueue size=%d recQueue size=%d",
+             devShadowQueue_ ? devShadowQueue_->size() : -1,
+             freeQueue_ ? freeQueue_->size() : -1,
+             recQueue_ ? recQueue_->size() : -1);
         return;
     }
+
+    LOGI("ProcessSLCallback: grabbed buf id=%p cap=%u size(before)=%u",
+         (void*)dataBuf, dataBuf->cap_, dataBuf->size_);
+
     devShadowQueue_->pop();
     dataBuf->size_ = dataBuf->cap_;           // device only calls us when it is really full
 
+    LOGI("ProcessSLCallback: pushed buf id=%p to recQueue (recQueue size now=%d)",
+         (void*)dataBuf, recQueue_ ? recQueue_->size() : -1);
 
 
     // Append to recQueue for downstream processing as before
@@ -234,6 +253,11 @@ void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
             }
         }
     }
+
+    LOGI("ProcessSLCallback: EXIT devShadow size=%d freeQueue size=%d recQueue size=%d",
+         devShadowQueue_ ? devShadowQueue_->size() : -1,
+         freeQueue_ ? freeQueue_->size() : -1,
+         recQueue_ ? recQueue_->size() : -1);
 }
 
 AudioRecorder::AudioRecorder(SampleFormat *sampleFormat, SLEngineItf slEngine) :
@@ -367,10 +391,19 @@ SLboolean  AudioRecorder::Stop(void) {
     // Return any remaining devShadowQueue_ buffers back into freeQueue_ now that recording is stopped
     if (devShadowQueue_ && freeQueue_) {
         sample_buf *buf = nullptr;
+
+        LOGI("Stop(): freeQueue size BEFORE drain = %d, devShadow size = %d",
+             freeQueue_->size(), devShadowQueue_->size());
+
         while (devShadowQueue_->front(&buf)) {
+
             devShadowQueue_->pop();
             freeQueue_->push(buf);
         }
+
+        LOGI("Stop(): freeQueue size AFTER drain = %d, devShadow size = %d",
+             freeQueue_->size(), devShadowQueue_->size());
+
     }
 
     // We do NOT automatically turn off collection here because the Java side will call

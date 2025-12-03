@@ -6,6 +6,8 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.Locale;
+
 public class FFTView extends View {
 
     private float[] fftData = null;
@@ -21,6 +23,7 @@ public class FFTView extends View {
 
     // Space reserved for axis labels (in pixels)
     private final int axisPadding = 60;
+
 
     public FFTView(Context context) {
         super(context);
@@ -120,76 +123,76 @@ public class FFTView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        int width = getWidth();
-        int height = getHeight() - axisPadding; // leave room for axis
-        canvas.drawRect(0, 0, width, getHeight(), backgroundPaint);
+        int w = getWidth();
+        int hFull = getHeight();
 
-        if (fftData == null || fftData.length == 0)
-            return;
+        // respect padding
+        int leftPad = getPaddingLeft() + 8;
+        int rightPad = getPaddingRight() + 8;
+        int bottomPad = getPaddingBottom() + axisPadding; // space for axis/labels
+        int topPad = getPaddingTop() + 8;
+
+        canvas.drawRect(0, 0, w, hFull, backgroundPaint);
+
+        if (fftData == null || fftData.length == 0) return;
 
         int n = fftData.length;
-
         int start = (xStartIndex >= 0) ? xStartIndex : 0;
         int end = (xEndIndex >= 0) ? xEndIndex : (n - 1);
-
         start = Math.max(0, Math.min(start, n - 1));
         end = Math.max(0, Math.min(end, n - 1));
-
-        if (start > end) {
-            start = 0;
-            end = n - 1;
-        }
+        if (start > end) { start = 0; end = n - 1; }
 
         int displayCount = end - start + 1;
-        float barWidth = (float) width / displayCount;
+        int availableWidth = Math.max(1, w - leftPad - rightPad);
+        float barWidth = (float) availableWidth / displayCount;
+        int availableHeight = Math.max(1, hFull - bottomPad - topPad);
 
-        // Scale bars
-        float maxVal = 0f;
-        for (int i = start; i <= end; i++)
-            if (fftData[i] > maxVal) maxVal = fftData[i];
-        if (maxVal < 1e-6f) maxVal = 1e-6f;
-
-        // Draw FFT bars
-        for (int i = 0; i < displayCount; i++) {
-            int dataIndex = start + i;
-            float value = fftData[dataIndex] / maxVal;
-            float barHeight = value * height;
-
-            float x = i * barWidth + barWidth / 2f;
-
-            canvas.drawLine(
-                    x,
-                    height,
-                    x,
-                    height - barHeight,
-                    paint
-            );
+        // compute max absolute magnitude
+        float maxVal = 1e-6f;
+        for (int i = start; i <= end; i++) {
+            float v = fftData[i];
+            if (!Float.isFinite(v)) continue;
+            v = Math.abs(v);
+            if (v > maxVal) maxVal = v;
         }
 
-        // ==== Draw X axis line ====
-        float axisY = height + 10;
-        canvas.drawLine(0, axisY, width, axisY, axisPaint);
+        // draw bars
+        paint.setAntiAlias(false);
+        for (int i = 0; i < displayCount; i++) {
+            int dataIndex = start + i;
+            float v = fftData[dataIndex];
+            if (!Float.isFinite(v)) v = 0f;
+            v = Math.abs(v) / maxVal;
+            float left = leftPad + i * barWidth;
+            float right = left + Math.max(1f, barWidth);
+            float top = topPad + (availableHeight * (1f - v));
+            float bottom = topPad + availableHeight;
+            canvas.drawRect(left, top, right, bottom, paint);
+        }
 
-        // ==== Draw labels ====
-        int numTicks = Math.min(10, displayCount);
-        if (numTicks < 2) numTicks = 2;
+        // axis
+        float axisY = topPad + availableHeight + 6;
+        canvas.drawLine(leftPad, axisY, w - rightPad, axisY, axisPaint);
 
-        for (int t = 0; t < numTicks; t++) {
-            float frac = (float) t / (numTicks - 1);
-            float x = frac * width;
-
+        // ticks: show first/last + a few intermediates based on width
+        int maxTicks = Math.min(6, displayCount);
+        if (maxTicks < 2) maxTicks = 2;
+        labelPaint.setTextAlign(Paint.Align.CENTER);
+        for (int t = 0; t < maxTicks; t++) {
+            float frac = (float) t / (maxTicks - 1);
+            float x = leftPad + frac * (availableWidth);
             int bin = start + Math.round(frac * (displayCount - 1));
-
-            // Tick mark
-            canvas.drawLine(x, axisY, x, axisY + 10, axisPaint);
-
-            // Label (bin index)
-            canvas.drawText(
-                    String.valueOf(bin),
-                    x,
-                    axisY + 40,
-                    labelPaint
-            );
+            String lbl;
+            float fftSize = fftData.length;
+            int sampleRate = 48000;
+            if (fftSize > 0) {
+                lbl = String.format(Locale.US, "%d", bin);
+            } else {
+                lbl = String.valueOf(bin);
+            }
+            canvas.drawLine(x, axisY, x, axisY + 8, axisPaint);
+            canvas.drawText(lbl, x, axisY + 30, labelPaint);
         }
     }
 }

@@ -75,7 +75,7 @@ public class MainActivity extends Activity
             stopPlay();
             isPlaying = false;
         }
-        // cleanup native engine
+        // full cleanup including engine
         deleteSLBufferQueueAudioPlayer();
         deleteAudioRecorder();
         deleteSLEngine();
@@ -94,7 +94,21 @@ public class MainActivity extends Activity
         if (id == R.id.action_settings) return true;
         return super.onOptionsItemSelected(item);
     }
+    private void releasePlayerAndRecorder() {
+        // stop playback if running
+        try {
+            stopPlay();
+        } catch (Exception e) {
+            Log.w("MainActivity", "stopPlay() threw: " + e.getMessage());
+        }
 
+        // delete objects associated with playback/recording
+        deleteSLBufferQueueAudioPlayer();
+        deleteAudioRecorder();
+
+        // DO NOT delete the SL engine here and DO NOT null out instance.
+        // deleteSLEngine() and instance = null should only happen in onDestroy()
+    }
     private void startEcho() {
 
         int sampleRate = Integer.parseInt(nativeSampleRate);
@@ -119,14 +133,14 @@ public class MainActivity extends Activity
                 return;
             }
 
-            // ⭐ 3. Create recorder (calls recorder->Start() in JNI)
+            // 3. Create recorder (calls recorder->Start() in JNI)
             if (!createAudioRecorder()) {
                 statusView.setText("Error creating recorder");
                 deleteSLBufferQueueAudioPlayer();
                 return;
             }
 
-            // ⭐ 4. Tell native how many bytes of recording we want
+            // 4. Tell native how many bytes of recording we want
             nativeStartCollect(expectedBytes);
 
             // 5. Start playback of chirp
@@ -137,17 +151,16 @@ public class MainActivity extends Activity
 
             // STOP STATE --------------------------------------
 
-            // Stop playback and recording
             stopPlay();
 
             // Get recorded buffer from native
             byte[] recorded = nativeStopAndGetRecording();
 
-            deleteAudioRecorder();
+            int expectedBytes = (int)(sampleRate * 2 * 2.0);
 
-            Log.i("MainActivity", "deleteSLBufferQueueAudioPlayer()");
-            deleteSLBufferQueueAudioPlayer();
-
+            if (recorded != null && recorded.length != expectedBytes) {
+                Log.w("ECHO_DEBUG", "Expected " + expectedBytes + " bytes, got " + recorded.length);
+            }
 
 
             WaveformView waveformView = findViewById(R.id.waveformView);
@@ -159,7 +172,10 @@ public class MainActivity extends Activity
                     pcm[i] = (short) ((recorded[i*2] & 0xFF) | (recorded[i*2 + 1] << 8));
                 }
 
-                waveformView.setAudioData(pcm);
+                if (waveformView != null) {
+                    waveformView.setAudioData(pcm);
+                }
+
             }
 
             // Debug log
@@ -168,7 +184,7 @@ public class MainActivity extends Activity
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("First samples: ");
-                for (int i = 0; i < Math.min(16, recorded.length); i++) {
+                for (int i = 0; i < recorded.length; i++) {
                     sb.append(String.format("%02X ", recorded[i]));
                 }
                 Log.i("ECHO_DEBUG", sb.toString());
@@ -182,25 +198,32 @@ public class MainActivity extends Activity
 
             FFTView FFTView = findViewById(R.id.FFTView);
 
-            FFTView.setXLimitsIndices(10, 500);
+            FFTView.setXLimitsIndices(0, 150);
 
             FFTView.setAudioData(result.FFT);
 
-            recorded = null;
 
+            //FFT logging
+            /*
+            float[] fft = result.FFT;
+            String full = Arrays.toString(fft);
+            int maxLogSize = 1000; // safe length for Logcat
 
+            for (int i = 0; i <= full.length() / maxLogSize; i++) {
+                int start = i * maxLogSize;
+                int end = Math.min((i + 1) * maxLogSize, full.length());
+                Log.i("ECHO_DEBUG", full.substring(start, end));
+            }
 
-
-
-
-            Log.i("ECHO_DEBUG", "FFT = " + Arrays.toString(result.FFT));
+             */
 
 
             if (result != null) {
                 String msg = String.format(Locale.US,
                         "Distance: %f m\n",
-                        result.distance_m / 2
+                        result.distance_m
                 );
+                Log.i("Distance = ", msg);
                 distanceView.setText(msg);
 
 
@@ -209,8 +232,11 @@ public class MainActivity extends Activity
                 distanceView.setText("Analysis failed.");
             }
 
-            deleteAudioRecorder();
-            deleteSLBufferQueueAudioPlayer();
+
+            //stop recorder
+
+            releasePlayerAndRecorder();
+
             statusView.setText("Stopped");
         }
 
@@ -232,7 +258,15 @@ public class MainActivity extends Activity
             return; // wait for user response before starting
         }
 
-        startEcho();
+        // Delay execution by 2000 ms (2 seconds)
+        statusView.setText("Starting in 2 seconds...");
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                startEcho();
+            }
+        }, 2000);
     }
 
     public void getLowLatencyParameters(View view) {

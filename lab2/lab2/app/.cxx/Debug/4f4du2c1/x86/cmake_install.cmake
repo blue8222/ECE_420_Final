@@ -1,4 +1,4 @@
-# Install script for directory: H:/ECE 420/old/ECE_420_Final/lab2/lab2/app/src/main/cpp
+# Install script for directory: H:/ECE 420/sonar/ECE_420_Final/lab2/lab2/app/src/main/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "H:/ECE 420/old/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "H:/ECE 420/sonar/ECE_420_Final/lab2/lab2/app/.cxx/Debug/4f4du2c1/x86/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
