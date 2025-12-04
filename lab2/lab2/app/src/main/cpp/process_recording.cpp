@@ -19,7 +19,7 @@
 
 #define V_s 343.0
 
-#define cancel_factor 0
+#define cancel_factor 0.3
 
 
 
@@ -135,69 +135,89 @@ struct Peak {
     float distance_m;
 };
 
-void takeFFT(const std::vector<float>& inReal,
-             std::vector<std::complex<float>>& outSpectrum,
-             std::vector<float>& outMagnitudes,
-             bool applyHamming = false,
-             bool returnDb = false)
+void takeFFT(
+        const std::vector<float>& inReal,
+        std::vector<std::complex<float>>& outSpectrum,
+        std::vector<float>& outMagnitudes,
+        int zeroPadTo = 0,             // NEW: 0 = no padding (default), >0 = pad to this size
+        bool applyHanning = false,
+        bool returnDb = false)
 {
-    int N = static_cast<int>(inReal.size());
+    int originalN = static_cast<int>(inReal.size());
     outSpectrum.clear();
     outMagnitudes.clear();
-    if (N <= 0) return;
+    if (originalN <= 0) return;
 
-    // copy input (and optionally apply Hamming window)
-    std::vector<float> data(inReal);
-    if (applyHamming) {
-        float denom = (N > 1) ? static_cast<float>(N - 1) : 1.0f;
-        for (int n = 0; n < N; ++n) {
-            float w = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / denom);
-            data[n] *= w;
-        }
+    // Determine actual FFT size
+    int N = originalN;
+    if (zeroPadTo > originalN) {
+        N = zeroPadTo;
+    } else if (zeroPadTo > 0) {
+        // If user requested smaller than input → ignore (doesn't make sense)
+        // But you could also truncate here if desired
+        ;
     }
 
-    // Prepare kiss input and output buffers
+    // Round up to next power of 2 for efficiency (highly recommended with kiss_fft)
+    // Comment this out if you want exact size control
+    int nextPow2 = 1;
+    while (nextPow2 < N) nextPow2 <<= 1;
+    N = nextPow2;
+
+    // Prepare windowed and zero-padded data
+    std::vector<float> data(N, 0.0f);  // zero-filled by default
+    std::copy(inReal.begin(), inReal.end(), data.begin());
+
+    if (applyHanning && originalN > 1) {
+        // Apply Hanning window only to the original (non-padded) part
+        float denom = static_cast<float>(originalN - 1);
+        for (int n = 0; n < originalN; ++n) {
+            float w = (float)(0.5 * (1.0 - cos(2.0 * M_PI * n / denom)));
+            data[n] *= w;
+        }
+        // Padded zeros remain zero → no window applied there (correct behavior)
+    }
+
+    // Prepare kiss_fft input/output
     std::vector<kiss_fft_cpx> fin(N);
     std::vector<kiss_fft_cpx> fout(N);
+
     for (int i = 0; i < N; ++i) {
         fin[i].r = data[i];
         fin[i].i = 0.0f;
     }
 
-    // Allocate config (forward FFT)
+    // Allocate and execute FFT
     kiss_fft_cfg cfg = kiss_fft_alloc(N, 0, nullptr, nullptr);
-    if (!cfg) {
-        return;
-    }
+    if (!cfg) return;
 
-    // Execute FFT
     kiss_fft(cfg, fin.data(), fout.data());
 
-    // Build full complex spectrum (size N)
+    // Full complex spectrum (size N)
     outSpectrum.resize(N);
     for (int k = 0; k < N; ++k) {
         outSpectrum[k] = std::complex<float>(fout[k].r, fout[k].i);
     }
 
-    // Normalize and compute single-sided magnitudes (bins 0 .. halfN-1)
-    int halfN = N/2 + 1; // works for even/odd N
+    // Single-sided magnitude spectrum (0 to Nyquist)
+    int halfN = N / 2 + 1;
     outMagnitudes.resize(halfN);
 
-    const float scale = 1.0f / static_cast<float>(N); // normalization by N
+    const float scale = 1.0f / static_cast<float>(originalN);  // Important: normalize by ORIGINAL length!
+
     for (int k = 0; k < halfN; ++k) {
         float r = fout[k].r;
         float i = fout[k].i;
-        float mag = std::hypot(r, i) * scale; // normalized magnitude
+        float mag = std::hypot(r, i) * scale;
 
-        // for real input, double the energy in non-DC and non-Nyquist bins
-        if (k != 0 && !(N % 2 == 0 && k == N/2)) {
+        // Double the energy for symmetric bins (except DC and Nyquist)
+        if (k != 0 && k != N/2) {
             mag *= 2.0f;
         }
 
         if (returnDb) {
-            // convert to dB (guard against log(0))
-            float db = 20.0f * std::log10f(mag + 1e-12f);
-            outMagnitudes[k] = db;
+            mag = std::max(mag, 1e-12f);
+            outMagnitudes[k] = 20.0f * std::log10f(mag);
         } else {
             outMagnitudes[k] = mag;
         }
@@ -258,7 +278,7 @@ int maxIndex(std::vector<float>& arr,
 static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
                                           const std::vector<float>& reference_chirp,
                                           int sampleRate,
-                                          std::vector<float>& FFT_return)
+                                          std::vector<float>& FFT_return, int& peakBin)
 {
     if (recorded.empty() || reference_chirp.empty() || sampleRate <= 0) return -1.0;
 
@@ -272,6 +292,8 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
     // correlate() places lag=0 at index (len_b - 1)
     int refLen = static_cast<int>(reference_chirp.size());
     int lag = peak.index - (refLen - 1);
+
+
     if (lag < 0) lag = 0;
     if (lag > static_cast<int>(recorded.size())) lag = static_cast<int>(recorded.size());
 
@@ -318,7 +340,7 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
 
    // Peak F_p = findFFTPeak(FFT_mag, 50, static_cast<int>(FFT_mag.size()) - 1);
     Peak F_p;
-    F_p.index = maxIndex(FFT_mag, 50, 2000);
+    F_p.index = maxIndex(FFT_mag, 10, 250);
     if (F_p.index < 0) return -1.0;
 
     // convert bin -> frequency (Hz)
@@ -343,6 +365,8 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
     LOGI("peak_bin = %f", peak_bin);
     LOGI("freq_hz = %f", freq_hz);
 
+    peakBin = static_cast<int>(peak_bin);
+
     float D = R / 2.0;
 
     LOGI("D = %f", D);
@@ -357,6 +381,7 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
     AnalysisResult res;
 
     res.distance_valid = false;
+
     res.distance_m = -1.0;
     res.FFT = {};
 
@@ -378,7 +403,10 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
 
 
             std::vector<float> FFT_return;
-            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat, sampleRate, FFT_return);
+
+            int peakBin = 0;
+
+            double dist = estimateDistanceFromBuffers(recordedFloat, refFloat, sampleRate, FFT_return, peakBin);
 
             LOGI("dist = %f", dist);
 
@@ -386,6 +414,8 @@ AnalysisResult analyzeRecordedBuffer(const std::vector<uint8_t>& pcmBytes, int s
 
 
             res.FFT = FFT_return;
+
+            res.peakBin = peakBin;
 
             if (dist > 0.0) {
                 res.distance_valid = true;
@@ -456,13 +486,19 @@ Java_com_ece420_lab2_MainActivity_analyzeRecordedBuffer(JNIEnv *env, jclass claz
     }
     env->SetBooleanField(obj, validField, res.distance_valid ? JNI_TRUE : JNI_FALSE);
 
+    jfieldID peakBinField = env->GetFieldID(resultClass, "peakBin", "I");
+    if (validField == NULL) {
+        return NULL;
+    }
+    env->SetIntField(obj, peakBinField, res.peakBin);
+
+
+
     jfieldID distField = env->GetFieldID(resultClass, "distance_m", "D");
     if (distField == NULL) {
         return NULL;
     }
     env->SetDoubleField(obj, distField, static_cast<jdouble>(res.distance_m));
-
-
 
     jfieldID FFTField = env->GetFieldID(resultClass, "FFT", "[F");
     if (FFTField == NULL) {

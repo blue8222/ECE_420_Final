@@ -16,10 +16,14 @@ public class FFTView extends View {
     private final Paint backgroundPaint = new Paint();
     private final Paint axisPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint labelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
     // x-axis display limits
     private int xStartIndex = -1;
     private int xEndIndex = -1;
+
+    // Marker index for vertical line
+    private int markerIndex = -1;
 
     // Space reserved for axis labels (in pixels)
     private final int axisPadding = 60;
@@ -52,6 +56,9 @@ public class FFTView extends View {
         labelPaint.setColor(0xFFFFFFFF);
         labelPaint.setTextSize(28f);
         labelPaint.setTextAlign(Paint.Align.CENTER);
+
+        markerPaint.setColor(0xFFFF0000); // red for marker line
+        markerPaint.setStrokeWidth(2f);
     }
 
     public void setAudioData(float[] fft) {
@@ -116,6 +123,16 @@ public class FFTView extends View {
     public void resetXLimits() {
         xStartIndex = -1;
         xEndIndex = -1;
+        invalidate();
+    }
+
+    public void setMarkerIndex(int index) {
+        this.markerIndex = index;
+        invalidate();
+    }
+
+    public void resetMarker() {
+        this.markerIndex = -1;
         invalidate();
     }
 
@@ -186,13 +203,29 @@ public class FFTView extends View {
             String lbl;
             float fftSize = fftData.length;
             int sampleRate = 48000;
+            int sweepTime = 10000;
+            double V_s = 343.0;
+
+            double distance = bin/58.309;
+
             if (fftSize > 0) {
-                lbl = String.format(Locale.US, "%d", bin);
+                lbl = String.format(Locale.US, "%.1f", distance);
             } else {
+                assert (fftSize != 0);
+
                 lbl = String.valueOf(bin);
+
+                //freq_hz = peak_bin * (sampleRate / static_cast<double>(N));
+                //(V_s * sweepTime * freq_hz) / static_cast<float>(bandwidth);
             }
             canvas.drawLine(x, axisY, x, axisY + 8, axisPaint);
             canvas.drawText(lbl, x, axisY + 30, labelPaint);
+        }
+
+        // Draw vertical marker line if set and within range
+        if (markerIndex >= start && markerIndex <= end) {
+            float markerX = leftPad + (markerIndex - start) * barWidth + barWidth / 2f; // Center on the bar
+            canvas.drawLine(markerX, topPad, markerX, topPad + availableHeight, markerPaint);
         }
     }
 }

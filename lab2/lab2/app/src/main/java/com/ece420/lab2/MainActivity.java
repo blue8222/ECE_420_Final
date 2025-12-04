@@ -114,7 +114,7 @@ public class MainActivity extends Activity
         int sampleRate = Integer.parseInt(nativeSampleRate);
 
         // Generate chirp
-        byte[] chirp = generateChirpPCMNative();
+        byte[] chirp = generateChirpPCMNative(true);
 
         if (!isPlaying) {
 
@@ -198,7 +198,12 @@ public class MainActivity extends Activity
 
             FFTView FFTView = findViewById(R.id.FFTView);
 
-            FFTView.setXLimitsIndices(0, 150);
+            FFTView.setXLimitsIndices(0, 100);
+
+            FFTView.setMarkerIndex(result.peakBin);
+
+            Log.i("peakBin", String.valueOf(result.peakBin));
+
 
             FFTView.setAudioData(result.FFT);
 
@@ -324,6 +329,7 @@ public class MainActivity extends Activity
     public static class AnalysisResult {
         public boolean distance_valid;
         public float[] FFT;
+        public int peakBin;
         public double distance_m;
     }
 
@@ -358,7 +364,7 @@ public class MainActivity extends Activity
 
     public static native byte[] generateTonePCMNative(int sampleRate, int durationSeconds, double freqHz);
 
-    public static native byte[] generateChirpPCMNative();
+    public static native byte[] generateChirpPCMNative(boolean jApplyWindow);
 
     private static native AnalysisResult analyzeRecordedBuffer(byte[] pcmBytes, int sampleRate, byte[] referenceChirpBytes);
 
