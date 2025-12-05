@@ -33,9 +33,9 @@
 /*
  * Sample Buffer Controls...
  */
-#define RECORD_DEVICE_KICKSTART_BUF_COUNT   64
+#define RECORD_DEVICE_KICKSTART_BUF_COUNT   16
 #define PLAY_KICKSTART_BUFFER_COUNT         4
-#define DEVICE_SHADOW_BUFFER_QUEUE_LEN      128
+#define DEVICE_SHADOW_BUFFER_QUEUE_LEN      16
 #define BUF_COUNT                           4
 
 

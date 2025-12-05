@@ -202,18 +202,23 @@ public class FFTView extends View {
             int bin = start + Math.round(frac * (displayCount - 1));
             String lbl;
             float fftSize = fftData.length;
-            int sampleRate = 48000;
-            int sweepTime = 10000;
+            double sampleRate = 48000;
+            double sweepTime = 0.35;
+            int bandwidth = 10000;
             double V_s = 343.0;
+            double fb = bin * (sampleRate / fftData.length);
 
-            double distance = bin/58.309;
+            double R = ((V_s * fb * sweepTime) / (2.0 * bandwidth) )/ 2;
+
+
+
 
             if (fftSize > 0) {
-                lbl = String.format(Locale.US, "%.1f", distance);
+                lbl = String.format(Locale.US, "%.2f m", R);
             } else {
                 assert (fftSize != 0);
 
-                lbl = String.valueOf(bin);
+                lbl = ("axis failure");
 
                 //freq_hz = peak_bin * (sampleRate / static_cast<double>(N));
                 //(V_s * sweepTime * freq_hz) / static_cast<float>(bandwidth);

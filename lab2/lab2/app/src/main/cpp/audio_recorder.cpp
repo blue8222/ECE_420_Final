@@ -6,6 +6,12 @@
 #include <mutex>
 #include <atomic>
 
+#include <deque>
+#include <condition_variable>
+#include <thread>
+#include <cmath> // for std::sqrt
+
+
 #include <jni.h>
 
 #include "audio_recorder.h"
@@ -15,6 +21,11 @@
 // Add near top of file (after includes and existing globals)
 static JavaVM* gJvm = nullptr;  // set by JNI_OnLoad
 static jclass gMainActivityClass = nullptr;
+static std::deque<std::vector<uint8_t>> s_processingQueue;
+static std::mutex                       s_processingMutex;
+static std::condition_variable          s_processingCv;
+static std::thread                       s_processingThread;
+static std::atomic<bool>                 s_processingRunning(false);
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     gJvm = vm;
@@ -109,9 +120,11 @@ Java_com_ece420_lab2_MainActivity_nativeStopAndGetRecording(JNIEnv *env, jclass 
     // Prefer returning completed buffer if the callback moved it there
     std::vector<uint8_t> *src = nullptr;
     if (!g_completedPCM.empty()) {
+        LOGI("g_completed selected");
         src = &g_completedPCM;
     } else {
         src = &g_recordedPCM;
+        LOGI("g_recorded selected");
     }
 
     jsize outLen = static_cast<jsize>(src->size());
@@ -132,7 +145,57 @@ Java_com_ece420_lab2_MainActivity_nativeStopAndGetRecording(JNIEnv *env, jclass 
     return outArr;
 }
 // ---- Original AudioRecorder methods, modified to append to g_recordedPCM ----
+static void processingThreadMain() {
+    s_processingRunning.store(true);
+    while (s_processingRunning.load()) {
+        std::vector<uint8_t> item;
+        {
+            std::unique_lock<std::mutex> lk(s_processingMutex);
+            s_processingCv.wait(lk, [] {
+                return !s_processingQueue.empty() || !s_processingRunning.load();
+            });
+            if (!s_processingRunning.load() && s_processingQueue.empty()) break;
+            if (!s_processingQueue.empty()) {
+                item = std::move(s_processingQueue.front());
+                s_processingQueue.pop_front();
+            }
+        }
+        if (item.empty()) continue;
 
+        // Lightweight analysis (similar to your in-callback code) -- compute RMS and simple zero crossing freq
+        size_t bytes = item.size();
+        const size_t numSamples = bytes / 2;
+        if (numSamples == 0) {
+            notifyJavaAnalysis(false, 0);
+            continue;
+        }
+        // interpret as int16 little-endian
+        int16_t *samples = reinterpret_cast<int16_t*>(item.data());
+        double sumSq = 0.0;
+        int zeroCrossings = 0;
+        int16_t prev = samples[0];
+        for (size_t i = 1; i < numSamples; ++i) {
+            int16_t s = samples[i];
+            double d = (double)s;
+            sumSq += d * d;
+            if ((s >= 0 && prev < 0) || (s < 0 && prev >= 0)) {
+                zeroCrossings++;
+            }
+            prev = s;
+        }
+        double rms = std::sqrt(sumSq / (double)numSamples);
+
+        int sampleRate = 16000; // fallback
+#ifdef HAS_SAMPLEINFO_RATE
+        sampleRate = (int) sampleInfo_.sampleRate; // if available in your build
+#endif
+        double estimatedFreq = (double)zeroCrossings * (double)sampleRate / (2.0 * (double)numSamples);
+        bool voiced = (rms > 500.0); // keep existing threshold for now
+        int freqInt = static_cast<int>(estimatedFreq + 0.5);
+
+        notifyJavaAnalysis(voiced, freqInt);
+    }
+}
 void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
 #ifdef ENABLE_LOG
     recLog_->logTime();
@@ -164,14 +227,40 @@ void AudioRecorder::ProcessSLCallback(SLAndroidSimpleBufferQueueItf bq) {
     devShadowQueue_->pop();
     dataBuf->size_ = dataBuf->cap_;           // device only calls us when it is really full
 
+    // copy bytes into processing queue (so processing happens off-callback)
+    std::vector<uint8_t> proc;
+    proc.assign(dataBuf->buf_, dataBuf->buf_ + dataBuf->size_);
+    {
+        std::lock_guard<std::mutex> plock(s_processingMutex);
+        s_processingQueue.emplace_back(std::move(proc));
+    }
+    s_processingCv.notify_one();
+
+    // immediately re-enqueue the same sample_buf to the OpenSL buffer queue so the device isn't starved
+    SLresult enqRes = (*recBufQueueItf_)->Enqueue(recBufQueueItf_,
+                                                  dataBuf->buf_,
+                                                  dataBuf->cap_);
+    if (SL_RESULT_SUCCESS == enqRes) {
+        // device now owns this buffer again - track it in devShadowQueue_
+        devShadowQueue_->push(dataBuf);
+    } else {
+        // failed to re-enqueue: return buffer to free pool to avoid leak
+        LOGE("ProcessSLCallback: failed to Enqueue replacement buffer: %d", (int)enqRes);
+        if (freeQueue_) {
+            freeQueue_->push(dataBuf);
+        }
+    }
     LOGI("ProcessSLCallback: pushed buf id=%p to recQueue (recQueue size now=%d)",
          (void*)dataBuf, recQueue_ ? recQueue_->size() : -1);
 
 
-    // Append to recQueue for downstream processing as before
-    recQueue_->push(dataBuf);
 
-    // Append raw bytes into global collector if enabled.
+
+
+
+
+
+
 
     if (g_collecting.load()) {
         std::vector<uint8_t> localCopy;
@@ -272,6 +361,9 @@ AudioRecorder::AudioRecorder(SampleFormat *sampleFormat, SLEngineItf slEngine) :
         callback_(nullptr)
 {
     SLresult result;
+
+    sampleInfo_.channels_ = 1;
+
     sampleInfo_ = *sampleFormat;
     SLAndroidDataFormat_PCM_EX format_pcm;
     ConvertToSLSampleFormat(&format_pcm, &sampleInfo_);
@@ -332,6 +424,11 @@ AudioRecorder::AudioRecorder(SampleFormat *sampleFormat, SLEngineItf slEngine) :
 
     devShadowQueue_ = new AudioQueue(DEVICE_SHADOW_BUFFER_QUEUE_LEN);
     assert(devShadowQueue_);
+    // start processing thread if not already running
+    if (!s_processingRunning.load()) {
+        s_processingThread = std::thread(processingThreadMain);
+    }
+
 #ifdef ENABLE_LOG
     std::string name = "rec";
     recLog_ = new AndroidLog(name);
@@ -359,7 +456,13 @@ SLboolean AudioRecorder::Start(void) {
             break;
         }
         freeQueue_->pop();
-        assert(buf->buf_ && buf->cap_ && !buf->size_);
+        if (!buf->buf_ || !buf->cap_) {
+            LOGE("Start(): buffer invalid");
+            return SL_BOOLEAN_FALSE;
+        }
+
+// Force-reset size to 0 before initial enqueue
+        buf->size_ = 0;
 
         result = (*recBufQueueItf_)->Enqueue(recBufQueueItf_, buf->buf_,
                                              buf->cap_);
@@ -432,6 +535,13 @@ AudioRecorder::~AudioRecorder() {
         }
         delete (devShadowQueue_);
     }
+
+    s_processingRunning.store(false);
+    s_processingCv.notify_all();
+    if (s_processingThread.joinable()) {
+        s_processingThread.join();
+    }
+
 #ifdef  ENABLE_LOG
     if(recLog_) {
         delete recLog_;
