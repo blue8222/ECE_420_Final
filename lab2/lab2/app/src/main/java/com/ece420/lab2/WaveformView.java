@@ -9,6 +9,9 @@ import android.view.View;
 
 public class WaveformView extends View {
 
+    private float pixelsPerSample = 0.1f; // 1 pixel per sample
+
+
     private short[] samples = new short[0];
     private Paint paint = new Paint();
 
@@ -29,13 +32,13 @@ public class WaveformView extends View {
         if (samples.length == 0) return;
 
         float midY = getHeight() / 2f;
-        float scaleX = (float)getWidth() / samples.length;
+        //float scaleX = (float)getWidth() / samples.length;
         float scaleY = (float)(getHeight() / 2) / 32768f;
 
         for (int i = 1; i < samples.length; i++) {
-            float x1 = (i - 1) * scaleX;
+            float x1 = (i - 1) * pixelsPerSample;
             float y1 = midY - samples[i - 1] * scaleY;
-            float x2 = i * scaleX;
+            float x2 = i * pixelsPerSample;
             float y2 = midY - samples[i] * scaleY;
             canvas.drawLine(x1, y1, x2, y2, paint);
         }

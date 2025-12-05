@@ -14,37 +14,44 @@
 
 // Add near top of file (after includes and existing globals)
 static JavaVM* gJvm = nullptr;  // set by JNI_OnLoad
+static jclass gMainActivityClass = nullptr;
 
-// Called when the native library is loaded - cache the JavaVM
-jint JNI_OnLoad(JavaVM* vm, void* /*reserved*/) {
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     gJvm = vm;
     return JNI_VERSION_1_6;
 }
 
-// Helper: call MainActivity.onNativeAnalysisResult(boolean, int)
-static void notifyJavaAnalysis(bool voiced, int freq) {
-    if (!gJvm) return;
+extern "C" JNIEXPORT void JNICALL
+Java_com_ece420_lab2_MainActivity_nativeInit(JNIEnv* env, jclass clazz) {
+    if (gMainActivityClass == nullptr) {
+        gMainActivityClass = (jclass)env->NewGlobalRef(clazz);
+    }
+}
+
+void notifyJavaAnalysis(bool voiced, int freq) {
+    if (!gJvm || !gMainActivityClass) return;
 
     JNIEnv* env = nullptr;
     bool attached = false;
-    jint getEnvStat = gJvm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
-    if (getEnvStat == JNI_EDETACHED) {
-        // Attach current native thread to JVM so we can call Java methods
+
+    if (gJvm->GetEnv((void**)&env, JNI_VERSION_1_6) == JNI_EDETACHED) {
         if (gJvm->AttachCurrentThread(&env, nullptr) != 0) {
-            return; // can't attach
+            return;
         }
         attached = true;
-    } else if (getEnvStat != JNI_OK) {
-        return; // unexpected
     }
 
-    jclass clazz = env->FindClass("com/ece420/lab2/MainActivity");
-    if (clazz) {
-        jmethodID mid = env->GetStaticMethodID(clazz, "onNativeAnalysisResult", "(ZI)V");
-        if (mid) {
-            env->CallStaticVoidMethod(clazz, mid, (jboolean)voiced, (jint)freq);
-        }
-        env->DeleteLocalRef(clazz);
+    jmethodID mid = env->GetStaticMethodID(gMainActivityClass,
+                                           "onNativeAnalysisResult",
+                                           "(ZI)V"); // boolean, int -> void
+
+    if (mid) {
+        env->CallStaticVoidMethod(
+                gMainActivityClass,
+                mid,
+                (jboolean)voiced,
+                (jint)freq
+        );
     }
 
     if (attached) {

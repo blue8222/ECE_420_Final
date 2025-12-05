@@ -2,9 +2,12 @@
 #include <cstring>
 #include <android/log.h>
 
+
 #define LOGTAG "StaticAudioPlayer"
 #define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOGTAG, __VA_ARGS__)
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO,  LOGTAG, __VA_ARGS__)
+
+
 
 StaticAudioPlayer::StaticAudioPlayer(
         SLEngineItf engine,
@@ -51,8 +54,9 @@ StaticAudioPlayer::StaticAudioPlayer(
     formatPCM.sampleRate = static_cast<SLuint32>(sampleRate) * 1000; // millihertz
     formatPCM.bitsPerSample = static_cast<SLuint32>(bits);
     formatPCM.containerSize = static_cast<SLuint32>(bits);
-    formatPCM.channelMask = (channels == 1) ? SL_SPEAKER_FRONT_CENTER
-                                            : (SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT);
+    formatPCM.channelMask = (channels == 1)
+                                                    ? SL_SPEAKER_FRONT_CENTER
+                                                    : (SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT);
     formatPCM.endianness = SL_BYTEORDER_LITTLEENDIAN;
     formatPCM.representation = SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT;
 

@@ -63,6 +63,7 @@ static std::vector<float> int16ToFloat(const std::vector<int16_t>& in) {
 
 // ----------------- Correlation / Peak-finding for chirp ranging -----------------
 
+/*
 // Cross-correlate two real float sequences using Kiss FFT in frequency domain.
 // Returns correlation of length (len_a + len_b - 1). Output arranged with lag zero at index (len_b - 1).
 static std::vector<float> correlate(const std::vector<float>& a, const std::vector<float>& b) {
@@ -128,6 +129,7 @@ static std::vector<float> correlate(const std::vector<float>& a, const std::vect
     }
     return result;
 }
+*/
 
 struct Peak {
     int index;
@@ -226,6 +228,7 @@ void takeFFT(
     kiss_fft_free(cfg);
 }
 
+/*
 static Peak findMaxPeak(const std::vector<float>& correlation)
 {
     Peak result{};
@@ -249,7 +252,7 @@ static Peak findMaxPeak(const std::vector<float>& correlation)
     result.value = best_val;
     return result;
 }
-
+*/
 int maxIndex(std::vector<float>& arr,
              int startIndex_,
              int endIndex_)
@@ -275,17 +278,21 @@ int maxIndex(std::vector<float>& arr,
 
 
 // Top-level function used earlier as distanceEstimation; now embedded in analyzeRecordedBuffer
-static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
+static double estimateDistanceFromBuffers(std::vector<float>& recorded,
                                           const std::vector<float>& reference_chirp,
                                           int sampleRate,
                                           std::vector<float>& FFT_return, int& peakBin)
 {
     if (recorded.empty() || reference_chirp.empty() || sampleRate <= 0) return -1.0;
 
+    /*
     std::vector<float> corr = correlate(recorded, reference_chirp);
     if (corr.empty()) return -1.0;
 
     Peak peak = findMaxPeak(corr);
+
+    LOGI("correlation peak from cpp = %d", peak.index);
+
     if (peak.index < 0) return -1.0;
 
     // convert correlation index -> lag (samples)
@@ -309,25 +316,27 @@ static double estimateDistanceFromBuffers(const std::vector<float>& recorded,
 
     // cancellation
 
-    for (size_t i = 0; i < arraySliced.size(); ++i) {
-        arraySliced[i] = arraySliced[i] - cancel_factor * reference_chirp[i];
+    */
+    /*
+    for (size_t i = 0; i < recorded.size(); ++i) {
+        recorded[i] = recorded[i] - cancel_factor * reference_chirp[i];
     }
-
+    */
     // apply Hamming window (guard denom)
-    int N = static_cast<int>(arraySliced.size());
+    int N = static_cast<int>(recorded.size());
     if (N <= 0) return -1.0;
     if (N > 1) {
         float denom = static_cast<float>(N - 1);
         for (int n = 0; n < N; ++n) {
             float w = 0.54f - 0.46f * std::cos(2.0f * M_PI * n / denom);
-            arraySliced[n] *= w;
+            recorded[n] *= w;
         }
     }
 
     // multiply with reference
     std::vector<float> mult(N);
     for (int n = 0; n < N; ++n) {
-        mult[n] = arraySliced[n] * reference_chirp[n];
+        mult[n] = recorded[n] * reference_chirp[n];
     }
 
     // take FFT

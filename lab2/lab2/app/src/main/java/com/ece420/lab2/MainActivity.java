@@ -8,10 +8,15 @@ import android.Manifest;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
+import android.media.MicrophoneInfo;
 import android.os.Bundle;
 import android.os.Handler;
 
+import org.jtransforms.fft.FloatFFT_1D;
+
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.AsyncTask;
@@ -30,6 +35,8 @@ import android.widget.Toast;
 import java.util.Locale;
 
 
+
+
 public class MainActivity extends Activity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
 
@@ -44,13 +51,190 @@ public class MainActivity extends Activity
     Boolean isPlaying = false;
     // Static Values
     private static final int AUDIO_ECHO_REQUEST = 0;
+
+    public static native void nativeInit();
+
+    private static final int sampleRate_ = 48000;
     private static MainActivity instance;
+
+    public static byte[] monoToStereoLeft(byte[] monoPCM) {
+        if (monoPCM == null || monoPCM.length % 2 != 0) {
+            throw new IllegalArgumentException("monoPCM must be 16-bit PCM (even length)");
+        }
+
+        int monoSamples = monoPCM.length / 2;
+        byte[] stereo = new byte[monoSamples * 4]; // 2 channels * 2 bytes per sample
+
+        int monoIndex = 0;
+        int stereoIndex = 0;
+
+        while (monoIndex < monoPCM.length) {
+            byte lo = monoPCM[monoIndex];
+            byte hi = monoPCM[monoIndex + 1];
+
+            // ----- LEFT CHANNEL (100% right pan => left is silent) -----
+            stereo[stereoIndex + 2]     = 0;
+            stereo[stereoIndex + 3] = 0;
+
+            // ----- RIGHT CHANNEL (copy input mono sample) -----
+            stereo[stereoIndex] = lo;
+            stereo[stereoIndex + 1] = hi;
+
+            monoIndex += 2;
+            stereoIndex += 4;
+        }
+
+        return stereo;
+    }
+    public static short[] multiplyPcm(short[] a, short[] b) {
+        int n = Math.min(a.length, b.length);
+        short[] out = new short[n];
+
+        for (int i = 0; i < n; i++) {
+            // Convert to normalized float [-1, 1]
+            float fa = a[i] / 32768f;
+            float fb = b[i] / 32768f;
+
+            // Multiply in floating-point
+            float fm = fa * fb;
+
+            // Convert back, scale up
+            int sample = Math.round(fm * 32767f);
+
+            // Clamp to prevent clipping (just in case)
+            if (sample > 32767) sample = 32767;
+            if (sample < -32768) sample = -32768;
+
+            out[i] = (short) sample;
+        }
+
+        return out;
+    }
+    public static float[] fftShortArray(short[] pcm) {
+        if (pcm == null || pcm.length == 0) return new float[0];
+
+        int n = pcm.length;
+
+        // Convert short[] -> float[] for JTransforms
+        float[] fftData = new float[n];
+        for (int i = 0; i < n; i++) {
+            fftData[i] = pcm[i]; // no scaling by default
+        }
+
+        // Perform FFT (real-valued forward transform)
+        FloatFFT_1D fft = new FloatFFT_1D(n);
+        fft.realForward(fftData);
+
+        // fftData now contains packed FFT:
+        // index 0      -> real(0 Hz)
+        // index 1      -> real(N/2)  (Nyquist)
+        // index 2k     -> real(k)
+        // index 2k + 1 -> imag(k), for k = 1..N/2-1
+        return fftData;
+    }
+    public static float[] computeMagnitude(float[] fftData) {
+        if (fftData == null || fftData.length == 0) return new float[0];
+
+        int n = fftData.length;
+        int bins = n / 2 + 1;
+        float[] mag = new float[bins];
+
+        // bin 0 (DC)
+        mag[0] = Math.abs(fftData[0]);
+
+        // bin N/2 (Nyquist) - stored at index 1
+        mag[bins - 1] = Math.abs(fftData[1]);
+
+        // bins 1..N/2-1
+        for (int k = 1; k < bins - 1; k++) {
+            float real = fftData[2 * k];
+            float imag = fftData[2 * k + 1];
+            // use sqrt(real^2 + imag^2)
+            mag[k] = (float) Math.sqrt((double) real * real + (double) imag * imag);
+        }
+
+        return mag;
+    }
+
+    public static double[] correlate(short[] signal, short[] template) {
+        int N = signal.length;
+        int M = template.length;
+        int convLen = N + M - 1;
+
+        // Next power of 2 >= convLen
+        int fftSize = 1;
+        while (fftSize < convLen) fftSize <<= 1;
+
+        // Allocate real+imag (interleaved) buffers
+        float[] A = new float[2 * fftSize];
+        float[] B = new float[2 * fftSize];
+
+        // Copy signal into A (real)
+        for (int i = 0; i < N; i++) A[2 * i] = signal[i];
+
+        // Copy template into B reversed (needed for correlation)
+        // corr = conv(signal, reverse(template))
+        for (int i = 0; i < M; i++) B[2 * i] = template[M - 1 - i];
+
+        FloatFFT_1D fft = new FloatFFT_1D(fftSize);
+
+        // Forward FFTs (complex)
+        fft.complexForward(A);
+        fft.complexForward(B);
+
+        // Multiply A *= conj(B)
+        for (int k = 0; k < 2 * fftSize; k += 2) {
+            float ar = A[k], ai = A[k + 1];
+            float br = B[k], bi = B[k + 1];
+
+            // conj(B) = (br, -bi)
+            A[k]     = ar * br + ai * bi;   // real
+            A[k + 1] = ai * br - ar * bi;   // imag
+        }
+
+        // IFFT
+        fft.complexInverse(A, true);
+
+        // Extract real part of convolution output (valid: convLen samples)
+        double[] corr = new double[convLen];
+        for (int i = 0; i < convLen; i++) {
+            corr[i] = A[2 * i];
+        }
+
+        return corr;
+    }
+
+
+    /** Find best correlation peak (max absolute). */
+    public static int findPeak(double[] corr) {
+        int best = 0;
+        double bestVal = Math.abs(corr[0]);
+        for (int i = 1; i < corr.length; i++) {
+            double v = Math.abs(corr[i]);
+            if (v > bestVal) {
+                bestVal = v;
+                best = i;
+            }
+        }
+        return best;
+    }
+    public static byte[] shortsToBytes(short[] pcm) {
+        byte[] out = new byte[pcm.length * 2];
+        for (int i = 0; i < pcm.length; i++) {
+            out[i * 2]     = (byte) (pcm[i] & 0xFF);       // low byte
+            out[i * 2 + 1] = (byte) ((pcm[i] >> 8) & 0xFF); // high byte
+        }
+        return out;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         instance = this;
+
+        nativeInit();
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
         distanceView = findViewById(R.id.distanceView);
@@ -67,6 +251,10 @@ public class MainActivity extends Activity
         // so we can play static buffers without needing the mic.
         Log.i("MainActivity", "nativeSampleBufSize: " + nativeSampleBufSize);
         createSLEngine(Integer.parseInt(nativeSampleRate), Integer.parseInt(nativeSampleBufSize), 2);
+
+
+
+
     }
 
     @Override
@@ -111,17 +299,22 @@ public class MainActivity extends Activity
     }
     private void startEcho() {
 
-        int sampleRate = Integer.parseInt(nativeSampleRate);
+        int sampleRate = sampleRate_;
 
         // Generate chirp
         byte[] chirp = generateChirpPCMNative(true);
 
+        int expectedBytes = (int) (sampleRate * 2 * 0.4);;
+
         if (!isPlaying) {
 
-            int expectedBytes = (int)(sampleRate * 2 * 2.0); // 1 second recording
+
 
             // 1. Load PCM into native buffer
-            boolean ok = loadPCMBuffer(chirp);
+            byte[] stereoLeft = monoToStereoLeft(chirp);
+
+            boolean ok = loadPCMBuffer(stereoLeft);
+
             if (!ok) {
                 statusView.setText("Error loading PCM buffer");
                 return;
@@ -156,7 +349,6 @@ public class MainActivity extends Activity
             // Get recorded buffer from native
             byte[] recorded = nativeStopAndGetRecording();
 
-            int expectedBytes = (int)(sampleRate * 2 * 2.0);
 
             if (recorded != null && recorded.length != expectedBytes) {
                 Log.w("ECHO_DEBUG", "Expected " + expectedBytes + " bytes, got " + recorded.length);
@@ -165,18 +357,49 @@ public class MainActivity extends Activity
 
             WaveformView waveformView = findViewById(R.id.waveformView);
 
+            short[] pcm = null;
+
             if (recorded != null) {
                 // Convert byte[] → short[] PCM
-                short[] pcm = new short[recorded.length / 2];
+                pcm = new short[recorded.length / 2];
                 for (int i = 0; i < pcm.length; i++) {
-                    pcm[i] = (short) ((recorded[i*2] & 0xFF) | (recorded[i*2 + 1] << 8));
-                }
-
-                if (waveformView != null) {
-                    waveformView.setAudioData(pcm);
+                    pcm[i] = (short) ((recorded[i * 2] & 0xFF) | (recorded[i * 2 + 1] << 8));
                 }
 
             }
+
+            WaveformView waveformView2 = findViewById(R.id.waveformView2);
+
+            short[] chirp_pcm = null;
+
+            if (chirp != null) {
+                // Convert byte[] → short[] PCM
+                chirp_pcm = new short[chirp.length / 2];
+                for (int i = 0; i < chirp_pcm.length; i++) {
+                    chirp_pcm[i] = (short) ((chirp[i * 2] & 0xFF) | (chirp[i * 2 + 1] << 8));
+                }
+
+                if (waveformView2 != null) {
+                    waveformView2.setAudioData(chirp_pcm);
+                }
+
+            }
+
+
+            assert chirp_pcm != null;
+            assert pcm != null;
+            double[] corr = correlate(pcm, chirp_pcm);
+
+            int corr_idx = findPeak(corr);
+
+            Log.i("peak correlation index from java", String.valueOf(corr_idx));
+
+
+            short[] pcm_shifted = Arrays.copyOfRange(pcm, corr_idx, pcm.length - 1);
+
+            short[] pcm_final = Arrays.copyOf(pcm_shifted, pcm.length); //this should zero pad the end if its too short
+
+            waveformView.setAudioData(pcm_final);
 
             // Debug log
             if (recorded != null) {
@@ -192,20 +415,37 @@ public class MainActivity extends Activity
                 Log.e("ECHO_DEBUG", "Recorded buffer is null");
             }
 
+            byte[] byte_final = shortsToBytes(pcm_final);
             // Analyze the recorded audio
 
-            AnalysisResult result = analyzeRecordedBuffer(recorded, sampleRate, chirp);
+            assert(pcm_final.length == pcm.length);
+
+            short[] mult_java = multiplyPcm(pcm, pcm_final); //multiplication in float to avoid clipping
+
+            float[] FFT_java = fftShortArray(mult_java);
+
+
+
+            float[] FFT_mag = computeMagnitude(FFT_java);
+
+
+
+
+            /*
+            AnalysisResult result = analyzeRecordedBuffer(byte_final, sampleRate, chirp);
+
+
+
+            Log.i("peakBin", String.valueOf(result.peakBin));
+            */
 
             FFTView FFTView = findViewById(R.id.FFTView);
 
-            FFTView.setXLimitsIndices(0, 100);
+            FFTView.setXLimitsIndices(0, 300);
 
-            FFTView.setMarkerIndex(result.peakBin);
+            //FFTView.setMarkerIndex(result.peakBin);
 
-            Log.i("peakBin", String.valueOf(result.peakBin));
-
-
-            FFTView.setAudioData(result.FFT);
+            FFTView.setAudioData(FFT_mag);
 
 
             //FFT logging
@@ -222,7 +462,7 @@ public class MainActivity extends Activity
 
              */
 
-
+            /*
             if (result != null) {
                 String msg = String.format(Locale.US,
                         "Distance: %f m\n",
@@ -232,11 +472,10 @@ public class MainActivity extends Activity
                 distanceView.setText(msg);
 
 
-
             } else {
                 distanceView.setText("Analysis failed.");
             }
-
+            */
 
             //stop recorder
 
@@ -367,6 +606,7 @@ public class MainActivity extends Activity
     public static native byte[] generateChirpPCMNative(boolean jApplyWindow);
 
     private static native AnalysisResult analyzeRecordedBuffer(byte[] pcmBytes, int sampleRate, byte[] referenceChirpBytes);
+
 
     public static void onNativeAnalysisResult(final boolean voiced, final int freq) {
         // instance might be null if activity is gone or destroyed

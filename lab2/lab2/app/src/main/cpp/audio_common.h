@@ -28,12 +28,12 @@
 /*
  * Audio Sample Controls...
  */
-#define AUDIO_SAMPLE_CHANNELS               1
+#define AUDIO_SAMPLE_CHANNELS               2
 
 /*
  * Sample Buffer Controls...
  */
-#define RECORD_DEVICE_KICKSTART_BUF_COUNT   48
+#define RECORD_DEVICE_KICKSTART_BUF_COUNT   64
 #define PLAY_KICKSTART_BUFFER_COUNT         4
 #define DEVICE_SHADOW_BUFFER_QUEUE_LEN      128
 #define BUF_COUNT                           4
