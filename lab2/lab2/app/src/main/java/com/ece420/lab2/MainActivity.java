@@ -62,7 +62,7 @@ public class MainActivity extends Activity
 
     private static final int B = 10000;
 
-    private static final double sweepTime = 0.35;
+    private static final double sweepTime = 0.035;
     private static MainActivity instance;
 
     public static byte[] monoToStereoLeft(byte[] monoPCM) {
@@ -553,14 +553,32 @@ public class MainActivity extends Activity
             int peakIndex = peakIndexInRange(FFT_mag, 0, 200); //range max of ~7m
             int N = pcm_final_win.length;
             double freq = peakIndex * (sampleRate_/ (double) N);
+
             double D = ((V_s * freq * sweepTime )/ (2 * B) )/ 2;
 
             TextView distance = findViewById(R.id.distanceView);
 
-
-            String str = "distance = " + D + " m";
+            String s1 = String.format("%.3f", D);
+            String str = "distance = " + s1 + " m";
 
             distance.setText(str);
+
+            double reflection_generated = FFT_mag[peakIndex];
+
+            double reflection_ideal = 1000000.0; //<<<<<<<<<<<<<<TUNE THIS
+
+            double reflected_calculation = reflection_generated/reflection_ideal;
+
+            if (reflected_calculation > 1.0) reflected_calculation = 1.0;
+
+            TextView reflection = findViewById(R.id.reflectionView);
+
+            String s2 = String.format("%.3f", reflected_calculation);
+
+
+            String str2 = "reflection_coeff = " + s2;
+
+            reflection.setText(str2);
 
 
             FFTView.setMarkerIndex(peakIndex);
