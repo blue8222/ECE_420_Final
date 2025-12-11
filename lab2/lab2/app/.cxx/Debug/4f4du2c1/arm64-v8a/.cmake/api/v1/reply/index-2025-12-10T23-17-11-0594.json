@@ -8,10 +8,10 @@
 		},
 		"paths" : 
 		{
-			"cmake" : "C:/Users/dager/AppData/Local/Android/Sdk/cmake/3.22.1/bin/cmake.exe",
-			"cpack" : "C:/Users/dager/AppData/Local/Android/Sdk/cmake/3.22.1/bin/cpack.exe",
-			"ctest" : "C:/Users/dager/AppData/Local/Android/Sdk/cmake/3.22.1/bin/ctest.exe",
-			"root" : "C:/Users/dager/AppData/Local/Android/Sdk/cmake/3.22.1/share/cmake-3.22"
+			"cmake" : "C:/Users/Administrator/AppData/Local/Android/Sdk/cmake/3.22.1/bin/cmake.exe",
+			"cpack" : "C:/Users/Administrator/AppData/Local/Android/Sdk/cmake/3.22.1/bin/cpack.exe",
+			"ctest" : "C:/Users/Administrator/AppData/Local/Android/Sdk/cmake/3.22.1/bin/ctest.exe",
+			"root" : "C:/Users/Administrator/AppData/Local/Android/Sdk/cmake/3.22.1/share/cmake-3.22"
 		},
 		"version" : 
 		{
@@ -26,7 +26,7 @@
 	"objects" : 
 	[
 		{
-			"jsonFile" : "codemodel-v2-d84eb66896246a8ef658.json",
+			"jsonFile" : "codemodel-v2-1202e3dbf3f9327d307d.json",
 			"kind" : "codemodel",
 			"version" : 
 			{
@@ -35,7 +35,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cache-v2-e223bb1ca2a6d9036c05.json",
+			"jsonFile" : "cache-v2-b5b2ff5d6d930df7d8ba.json",
 			"kind" : "cache",
 			"version" : 
 			{
@@ -44,7 +44,7 @@
 			}
 		},
 		{
-			"jsonFile" : "cmakeFiles-v1-28c4e0f3b66b2be41f97.json",
+			"jsonFile" : "cmakeFiles-v1-1f7d43492bb008daa5a0.json",
 			"kind" : "cmakeFiles",
 			"version" : 
 			{
@@ -59,7 +59,7 @@
 		{
 			"cache-v2" : 
 			{
-				"jsonFile" : "cache-v2-e223bb1ca2a6d9036c05.json",
+				"jsonFile" : "cache-v2-b5b2ff5d6d930df7d8ba.json",
 				"kind" : "cache",
 				"version" : 
 				{
@@ -69,7 +69,7 @@
 			},
 			"cmakeFiles-v1" : 
 			{
-				"jsonFile" : "cmakeFiles-v1-28c4e0f3b66b2be41f97.json",
+				"jsonFile" : "cmakeFiles-v1-1f7d43492bb008daa5a0.json",
 				"kind" : "cmakeFiles",
 				"version" : 
 				{
@@ -79,7 +79,7 @@
 			},
 			"codemodel-v2" : 
 			{
-				"jsonFile" : "codemodel-v2-d84eb66896246a8ef658.json",
+				"jsonFile" : "codemodel-v2-1202e3dbf3f9327d307d.json",
 				"kind" : "codemodel",
 				"version" : 
 				{

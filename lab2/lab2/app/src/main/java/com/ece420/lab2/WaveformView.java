@@ -9,7 +9,7 @@ import android.view.View;
 
 public class WaveformView extends View {
 
-    private float pixelsPerSample = 0.1f; // 1 pixel per sample
+    private float pixelsPerSample = 0.5f; // 1 pixel per sample
 
 
     private short[] samples = new short[0];

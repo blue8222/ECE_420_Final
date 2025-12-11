@@ -10,7 +10,7 @@ import java.util.Locale;
 
 public class FFTView extends View {
 
-    private float[] fftData = null;
+    private double[] fftData = null;
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint backgroundPaint = new Paint();
@@ -61,7 +61,7 @@ public class FFTView extends View {
         markerPaint.setStrokeWidth(2f);
     }
 
-    public void setAudioData(float[] fft) {
+    public void setAudioData(double[] fft) {
         this.fftData = fft;
         if (fft != null && xStartIndex >= fft.length)
             resetXLimits();
@@ -166,10 +166,10 @@ public class FFTView extends View {
         int availableHeight = Math.max(1, hFull - bottomPad - topPad);
 
         // compute max absolute magnitude
-        float maxVal = 1e-6f;
+        Double maxVal = 1e-6;
         for (int i = start; i <= end; i++) {
-            float v = fftData[i];
-            if (!Float.isFinite(v)) continue;
+            double v = fftData[i];
+            if (!Double.isFinite(v)) continue;
             v = Math.abs(v);
             if (v > maxVal) maxVal = v;
         }
@@ -178,12 +178,12 @@ public class FFTView extends View {
         paint.setAntiAlias(false);
         for (int i = 0; i < displayCount; i++) {
             int dataIndex = start + i;
-            float v = fftData[dataIndex];
-            if (!Float.isFinite(v)) v = 0f;
+            double v = fftData[dataIndex];
+            if (!Double.isFinite(v)) v = 0f;
             v = Math.abs(v) / maxVal;
             float left = leftPad + i * barWidth;
             float right = left + Math.max(1f, barWidth);
-            float top = topPad + (availableHeight * (1f - v));
+            float top = (float) (topPad + (availableHeight * (1.0 - v)));
             float bottom = topPad + availableHeight;
             canvas.drawRect(left, top, right, bottom, paint);
         }
@@ -203,12 +203,13 @@ public class FFTView extends View {
             String lbl;
             float fftSize = fftData.length;
             double sampleRate = 48000;
-            double sweepTime = 0.35;
+            double sweepTime = 0.030;
             int bandwidth = 10000;
             double V_s = 343.0;
+
             double fb = bin * (sampleRate / fftData.length);
 
-            double R = ((V_s * fb * sweepTime) / (2.0 * bandwidth) )/ 2;
+            double R = ((V_s * fb * sweepTime) / (2.0 * bandwidth)) / 2;
 
 
 

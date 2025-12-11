@@ -14,7 +14,7 @@ import android.media.MicrophoneInfo;
 import android.os.Bundle;
 import android.os.Handler;
 
-import org.jtransforms.fft.FloatFFT_1D;
+import org.jtransforms.fft.DoubleFFT_1D;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -35,6 +35,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.Locale;
+import com.ece420.lab2.ChirpAligner;
+import com.ece420.lab2.AudioUtils;
 
 
 
@@ -56,13 +58,20 @@ public class MainActivity extends Activity
 
     public static native void nativeInit();
 
+    private static final int margin = 4000;
+    private static final int bounds = 2000;
     private static final int sampleRate_ = 48000;
+
+    private static final int minFreq = 9000;
 
     private static final int V_s = 343;
 
     private static final int B = 10000;
 
-    private static final double sweepTime = 0.035;
+    private static final double minDistance = 0.2; // = sampleRate_ * V_s * sweepTime / (2 * B);
+    private static final double maxDistance = 6.0; // = sampleRate_ * V_s * sweepTime / (2 * B);
+
+    private static final double sweepTime = 0.030;
     private static MainActivity instance;
 
     public static byte[] monoToStereoLeft(byte[] monoPCM) {
@@ -100,14 +109,14 @@ public class MainActivity extends Activity
 
         for (int i = 0; i < n; i++) {
             // Convert to normalized float [-1, 1]
-            float fa = a[i] / 32768f;
-            float fb = b[i] / 32768f;
+            double fa = a[i] / 32768f;
+            double fb = b[i] / 32768f;
 
             // Multiply in floating-point
-            float fm = fa * fb;
+            double fm = fa * fb;
 
             // Convert back, scale up
-            int sample = Math.round(fm * 32767f);
+            int sample = (int) (fm * 32767.0);
 
             // Clamp to prevent clipping (just in case)
             if (sample > 32767) sample = 32767;
@@ -154,21 +163,21 @@ public class MainActivity extends Activity
 
         return Arrays.copyOfRange(input, idx, input.length);
     }
-    public static float[] fftShortArray(short[] pcm) {
-        if (pcm == null || pcm.length == 0) return new float[0];
+    public static double[] fftShortArray(short[] pcm) {
+        if (pcm == null || pcm.length == 0) return new double[0];
 
         int n = pcm.length;
 
         Log.i("FFT Length = ", String.valueOf(n));
 
         // Convert short[] -> float[] for JTransforms
-        float[] fftData = new float[n];
+        double[] fftData = new double[n];
         for (int i = 0; i < n; i++) {
             fftData[i] = pcm[i]; // no scaling by default
         }
 
         // Perform FFT (real-valued forward transform)
-        FloatFFT_1D fft = new FloatFFT_1D(n);
+        DoubleFFT_1D fft = new DoubleFFT_1D(n);
         fft.realForward(fftData);
 
         // fftData now contains packed FFT:
@@ -178,12 +187,12 @@ public class MainActivity extends Activity
         // index 2k + 1 -> imag(k), for k = 1..N/2-1
         return fftData;
     }
-    public static float[] computeMagnitude(float[] fftData) {
-        if (fftData == null || fftData.length == 0) return new float[0];
+    public static double[] computeMagnitude(double[] fftData) {
+        if (fftData == null || fftData.length == 0) return new double[0];
 
         int n = fftData.length;
         int bins = n / 2 + 1;
-        float[] mag = new float[bins];
+        double[] mag = new double[bins];
 
         // bin 0 (DC)
         mag[0] = Math.abs(fftData[0]);
@@ -193,15 +202,15 @@ public class MainActivity extends Activity
 
         // bins 1..N/2-1
         for (int k = 1; k < bins - 1; k++) {
-            float real = fftData[2 * k];
-            float imag = fftData[2 * k + 1];
+            double real = fftData[2 * k];
+            double imag = fftData[2 * k + 1];
             // use sqrt(real^2 + imag^2)
-            mag[k] = (float) Math.sqrt((double) real * real + (double) imag * imag);
+            mag[k] = Math.sqrt(real * real + imag * imag);
         }
 
         return mag;
     }
-    public static int peakIndexInRange(float[] arr, int start, int end) {
+    public static int peakIndexInRange(double[] arr, int start, int end) {
         if (arr == null || arr.length == 0) return -1;
 
         start = Math.max(0, start);
@@ -209,7 +218,7 @@ public class MainActivity extends Activity
 
         if (start > end) return -1;
 
-        float maxVal = Float.NEGATIVE_INFINITY;
+        double maxVal = Float.NEGATIVE_INFINITY;
         int maxIdx = -1;
 
         for (int i = start; i <= end; i++) {
@@ -222,73 +231,75 @@ public class MainActivity extends Activity
         return maxIdx;
     }
     public static double[] correlate(short[] signal, short[] template) {
-        int N = signal.length;
-        int M = template.length;
+        int N = signal.length, M = template.length;
         int convLen = N + M - 1;
-
-        // FFT size (next pow2 >= convLen)
         int fftSize = 1;
         while (fftSize < convLen) fftSize <<= 1;
 
-        // complex arrays interleaved: [re0, im0, re1, im1, ...]
-        float[] A = new float[2 * fftSize];
-        float[] B = new float[2 * fftSize];
+        double[] A = new double[2 * fftSize];
+        double[] B = new double[2 * fftSize];
+        for (int i = 0; i < N; i++) A[2*i] = signal[i];
+        for (int i = 0; i < M; i++) B[2*i] = template[i];
 
-        // copy signal (real parts)
-        for (int i = 0; i < N; i++) A[2 * i] = signal[i];
-        // copy template (do NOT reverse if we multiply by conj(B))
-        for (int i = 0; i < M; i++) B[2 * i] = template[i];
-
-        FloatFFT_1D fft = new FloatFFT_1D(fftSize);
+        DoubleFFT_1D fft = new DoubleFFT_1D(fftSize);
         fft.complexForward(A);
         fft.complexForward(B);
-
-        // Multiply A *= conj(B): produces cross-correlation in time domain after IFFT
-        for (int k = 0; k < 2 * fftSize; k += 2) {
-            float ar = A[k], ai = A[k + 1];
-            float br = B[k], bi = B[k + 1];
-            // conj(B) = (br, -bi)
-            float rr = ar * br + ai * bi;
-            float ii = ai * br - ar * bi;
-            A[k] = rr;
-            A[k + 1] = ii;
+        for (int k = 0; k < 2*fftSize; k += 2) {
+            double ar = A[k], ai = A[k+1], br = B[k], bi = B[k+1];
+            double rr = ar*br + ai*bi;
+            double ii = ai*br - ar*bi;
+            A[k] = rr; A[k+1] = ii;
         }
-
         fft.complexInverse(A, true);
 
-        // extract raw real cross-correlation (length convLen)
-        double[] rawCorr = new double[convLen];
-        for (int i = 0; i < convLen; i++) rawCorr[i] = A[2 * i];
+        // Precompute template sums and signal running sums
+        double templateSum = 0.0;
+        double templateSqSum = 0.0;
+        for (int i = 0; i < M; i++) {
+            double t = template[i];
+            templateSum += t;
+            templateSqSum += t*t;
+        }
+        double templateMean = templateSum / M;
+        double templateVar = templateSqSum - M * templateMean * templateMean; // sum((t-mean)^2)
 
-        // compute template energy and running sum of signal^2
-        double templateEnergy = 0.0;
-        for (int i = 0; i < M; i++) templateEnergy += ((double) template[i]) * template[i];
-
-        double[] sqCum = new double[N + 1]; // sqCum[t] = sum_{j< t} signal[j]^2
-        sqCum[0] = 0.0;
+        double[] sigCum = new double[N+1];
+        double[] sigSqCum = new double[N+1];
+        sigCum[0] = 0.0; sigSqCum[0] = 0.0;
         for (int i = 0; i < N; i++) {
-            sqCum[i + 1] = sqCum[i] + ((double) signal[i]) * signal[i];
+            double s = signal[i];
+            sigCum[i+1] = sigCum[i] + s;
+            sigSqCum[i+1] = sigSqCum[i] + s*s;
         }
 
-        // normalized correlation (NCC)
         double[] nCorr = new double[convLen];
-        final double EPS = 1e-12;
+        final double REL_EPS = 1e-12;
         for (int i = 0; i < convLen; i++) {
-            // valid full-overlap index range:
-            if (i >= (M - 1) && i <= (N - 1)) {
-                int start = i - (M - 1); // segment start in signal
-                double segEnergy = sqCum[start + M] - sqCum[start];
-                double denom = Math.sqrt(Math.max(templateEnergy * segEnergy, EPS));
-                nCorr[i] = rawCorr[i] / denom;
+            if (i >= (M-1) && i <= (N-1)) {
+                int start = i - (M - 1);
+                // numerator: sum_j (signal[start+j] * template[j]) - M * mean_s * mean_t
+                double rawDot = A[2*i]; // FFT-derived dot: sum signal[start+j]*template[j]
+                double segSum = sigCum[start + M] - sigCum[start];
+                double segSqSum = sigSqCum[start + M] - sigSqCum[start];
+                double segMean = segSum / M;
+                double segVar = segSqSum - M * segMean * segMean; // sum((s-mean)^2)
+
+                double numer = rawDot - M * segMean * templateMean;
+                double denom = Math.sqrt(Math.max(templateVar * segVar, REL_EPS));
+
+                double val = denom <= 0.0 ? 0.0 : numer / denom;
+                // clamp small overshoot
+                if (val > 1.0) val = 1.0;
+                else if (val < -1.0) val = -1.0;
+                nCorr[i] = val;
             } else {
-                nCorr[i] = 0.0; // outside valid alignment -> ignore
+                nCorr[i] = 0.0;
             }
         }
-
         return nCorr;
     }
 
-    public static short[] applyHannWindowShortNormalized(short[] input) {
+    public static short[] applyHannWindowShort(short[] input) {
         int N = input.length;
         double[] temp = new double[N];
         double maxAbs = 0.0;
@@ -309,34 +320,102 @@ public class MainActivity extends Activity
         }
 
         // 3. Compute normalization scale
-        double scale = Short.MAX_VALUE / maxAbs;
+        //double scale = Short.MAX_VALUE / maxAbs;
 
         // 4. Normalize + convert to short
         short[] out = new short[N];
         for (int n = 0; n < N; n++) {
-            out[n] = (short) Math.round(temp[n] * scale);
+            out[n] = (short) Math.round(temp[n]);
         }
 
         return out;
     }
-    /** Find best correlation peak (max absolute). */
+
+    public static void normalizeInPlace(short[] pcm) {
+        if (pcm == null || pcm.length == 0) return;
+
+        int peak = 0;
+        for (short s : pcm) {
+            int abs = Math.abs((int) s); // safe: promotes to int
+            if (abs > peak) peak = abs;
+        }
+
+        if (peak == 0) return; // silent buffer, nothing to do
+
+        float scale = 32767f / (float) peak;
+        for (int i = 0; i < pcm.length; i++) {
+            int scaled = Math.round(pcm[i] * scale);
+            if (scaled > Short.MAX_VALUE) scaled = Short.MAX_VALUE;
+            else if (scaled < Short.MIN_VALUE) scaled = Short.MIN_VALUE;
+            pcm[i] = (short) scaled;
+        }
+    }
+    public static short[] generateChirpPCM(
+            double minFreq,
+            double bandwidth,
+            double sweepTime,
+            int sampleRate,
+            boolean applyWindow,
+            int margin
+
+    ) {
+        int chirpSamples = (int) Math.round(sampleRate * sweepTime);
+        int totalSamples = chirpSamples + 2 * margin;
+        short[] pcm = new short[totalSamples];
+
+        double maxFreq = minFreq + bandwidth;
+        double k = (maxFreq - minFreq) / sweepTime; // sweep rate (Hz/s)
+
+        for (int n = 0; n < chirpSamples; n++) {
+            double t = (double) n / sampleRate;
+
+            // Linear chirp phase
+            double phase = 2.0 * Math.PI * (minFreq * t + 0.5 * k * t * t);
+            double sample = Math.sin(phase);
+
+            // Apply Hanning window if requested
+            if (applyWindow) {
+                sample *= 0.5 * (1.0 - Math.cos(2.0 * Math.PI * n / (chirpSamples - 1)));
+            }
+
+            // Scale to 16-bit signed PCM
+            int s = (int) Math.round(sample * Short.MAX_VALUE);
+            if (s > Short.MAX_VALUE) s = Short.MAX_VALUE;
+            if (s < Short.MIN_VALUE) s = Short.MIN_VALUE;
+
+            // Write to array with margin offset
+            pcm[n + margin] = (short) s;
+        }
+
+        // The margins remain as zeros (default value for short arrays)
+        return pcm;
+    }
+
+     //Find the index of the peak correlation
+
     public static int findPeak(double[] corr, int signalLen, int templateLen) {
         int start = templateLen - 1;
-        int end   = signalLen - 1;
+        int end = signalLen - 1;
+
+
         if (start < 0) start = 0;
         if (end >= corr.length) end = corr.length - 1;
 
         double best = Double.NEGATIVE_INFINITY;
         int bestIdx = start;
+
         for (int i = start; i <= end; i++) {
             double val = Math.abs(corr[i]); // use abs (or magnitude if complex)
+
             if (val > best) {
                 best = val;
                 bestIdx = i;
             }
         }
+
         return bestIdx;
     }
+
     public static byte[] shortsToBytes(short[] pcm) {
         byte[] out = new byte[pcm.length * 2];
         for (int i = 0; i < pcm.length; i++) {
@@ -419,8 +498,11 @@ public class MainActivity extends Activity
     private void startEcho() {
 
         int sampleRate = sampleRate_;
-        byte[] chirp = generateChirpPCMNative(true);
-        int expectedBytes = (int) (sampleRate * 2 * 1); // 16-bit mono, 0.5s
+        short[] chirp_pcm_pad = generateChirpPCM(minFreq, B, sweepTime, sampleRate, true, margin);
+        short[] chirp_pcm = generateChirpPCM(minFreq, B, sweepTime, sampleRate, true, 0);
+        byte[] chirp = shortsToBytes(chirp_pcm_pad);
+
+        int expectedBytes = (int) (sweepTime * sampleRate + 2 * margin) * 8; // 16-bit mono
 
         // ─────────────────────────────────────────────
         // START STATE
@@ -480,17 +562,8 @@ public class MainActivity extends Activity
                 }
             }
 
-            pcm = trimLeadingBelowThreshold(pcm, 1000);
-            //pcm = trimLeadingZeros(pcm);
-            // Convert chirp → short[]
-            short[] chirp_pcm = null;
-            if (chirp != null) {
-                chirp_pcm = new short[chirp.length / 2];
-                for (int i = 0; i < chirp_pcm.length; i++) {
-                    chirp_pcm[i] = (short) ((chirp[i * 2] & 0xFF) |
-                            (chirp[i * 2 + 1] << 8));
-                }
-            }
+            Log.i("ECHO_DEBUG", "Refrence Chirp length = " + chirp_pcm.length);
+
 
             // Show chirp waveform
             WaveformView waveformView2 = findViewById(R.id.waveformView2);
@@ -515,25 +588,53 @@ public class MainActivity extends Activity
             assert chirp_pcm != null;
             assert pcm != null;
 
-            // Correlation to align
-            double[] corr = correlate(pcm, chirp_pcm);
-            int corr_idx = findPeak(corr, pcm.length, chirp_pcm.length);
-            int shift = corr_idx - (chirp_pcm.length - 1); // shift >= 0 means chirp starts at pcm[shift]
-            Log.i("peak correlation index from java", String.valueOf(corr_idx));
-            Log.i("alignment (pcm sample index)", String.valueOf(shift));
-            short[] pcm_shifted = Arrays.copyOfRange(pcm, Math.max(0, shift), pcm.length);
 
-            short[] pcm_final  = Arrays.copyOf(pcm_shifted, chirp_pcm.length); // zero padded
+            normalizeInPlace(pcm);
 
-            assert (pcm_final.length == chirp_pcm.length);
+            Log.i("ECHO_DEBUG", "Recorded PCM length = " + pcm.length);
+            normalizeInPlace(chirp_pcm);
+
+            ChirpAligner.Result result = ChirpAligner.alignChirps(chirp_pcm, pcm);
+
+
+
+            short[] aligned = result.aligned;            // the aligned chirp
+
+            //aligned = AudioUtils.applyBandpassFilter(aligned, sampleRate_, minFreq - bounds, minFreq + B + bounds, 161);
+            double peak_corr = result.peakCorrelation;        // the peak correlation value
+            int lag = result.lag;                        // computed lag
+
+
+
+
+
+
+            TextView corrView = findViewById(R.id.corrView);
+            String s3 = String.format("%.3e", peak_corr);
+            String str3 = "Peak Correlation = " + s3;
+
+            corrView.setText(str3);
+
+
+
+            //short[] pcm_shifted = Arrays.copyOfRange(pcm, shift, shift + pcm.length);
+
+            //short[] pcm_final  = Arrays.copyOf(pcm_shifted, chirp_pcm.length); // zero padded
+
 
             // Window
 
 
             // Multiply with chirp
-            short[] pcm_final_win = applyHannWindowShortNormalized(pcm_final);
 
-            short[] mult_java = multiplyPcm(pcm_final_win, chirp_pcm);
+            short[] mult_java = multiplyPcm(aligned, chirp_pcm);
+            short[] multLP = AudioUtils.applyLowpassFilter(mult_java, sampleRate_, minFreq, 101); // cutoff comfortably above max beat freq
+            short[] windowed = applyHannWindowShort(mult_java);
+
+
+
+
+
 
 
 
@@ -541,20 +642,37 @@ public class MainActivity extends Activity
             // Show time-domain
             WaveformView waveformView = findViewById(R.id.waveformView);
             if (waveformView != null) {
-                waveformView.setAudioData(pcm_final_win);
+                waveformView.setAudioData(windowed);
             }
 
+            int N = windowed.length;
+            double freqPerBin = (double) sampleRate_ / N;
+
+
+
+
+
+
             // FFT
-            float[] FFT_java = fftShortArray(mult_java);
-            float[] FFT_mag = computeMagnitude(FFT_java);
+            double[] FFT_java = fftShortArray(windowed);
+            double[] FFT_mag = computeMagnitude(FFT_java);
 
             FFTView FFTView = findViewById(R.id.FFTView);
 
-            int peakIndex = peakIndexInRange(FFT_mag, 0, 200); //range max of ~7m
-            int N = pcm_final_win.length;
-            double freq = peakIndex * (sampleRate_/ (double) N);
+            //D = (bin * sampleRate_) * V_s * T/ (2 * B * FFT_mag.length)
 
-            double D = ((V_s * freq * sweepTime )/ (2 * B) )/ 2;
+            //F_bin = bin * sampleRate_/ FFT_mag.length;
+
+
+            int minBin = (int) Math.ceil( minDistance * (2.0 * B * N) / (V_s * sampleRate_ * sweepTime) );
+            int maxBin = (int) Math.floor( maxDistance * (2.0 * B * N) / (V_s * sampleRate_ * sweepTime) );
+
+            int peakIndex = peakIndexInRange(FFT_mag, minBin, maxBin); //range max of 0.5 - 7.0m
+
+            //int N = pcm_final_win.length;
+            double freq = peakIndex * freqPerBin;
+
+            double D = (V_s * freq * sweepTime) / (2.0 * B);
 
             TextView distance = findViewById(R.id.distanceView);
 
@@ -581,8 +699,9 @@ public class MainActivity extends Activity
             reflection.setText(str2);
 
 
+
             FFTView.setMarkerIndex(peakIndex);
-            FFTView.setXLimitsIndices(0, 200);
+            FFTView.setXLimitsIndices(0, maxBin);
             FFTView.setAudioData(FFT_mag);
 
             releasePlayerAndRecorder();

@@ -28,7 +28,7 @@
 /*
  * Audio Sample Controls...
  */
-#define AUDIO_SAMPLE_CHANNELS               2
+#define AUDIO_SAMPLE_CHANNELS               1
 
 /*
  * Sample Buffer Controls...
